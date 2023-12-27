@@ -40,7 +40,7 @@
 					<view>0</view>
 				</view>
 				<view class="assembly-num">
-					<view>本次装配数量</view>
+					<view>{{numText}}</view>
 					<cc-numbox maxNum="3" @change="changeNum"></cc-numbox>
 				</view>
 			</view>
@@ -61,6 +61,10 @@
 		name: 'fui-dialog',
 		emits: ['click', 'close'],
 		props: {
+			numText: {
+				type: String,
+				default: '本次装配数量'
+			},
 			show: {
 				type: Boolean,
 				default: false

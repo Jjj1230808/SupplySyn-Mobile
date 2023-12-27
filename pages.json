@@ -19,6 +19,13 @@
 			}
 
 		}, {
+			"path": "pages/returnToWMS/returnToWMS",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
 			"path": "pages/successpage/successpage",
 			"style": {
 				"navigationBarTitleText": "",

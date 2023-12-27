@@ -43,7 +43,8 @@
 				<image src="../../static/WMS UI design/icon-shelf.svg" mode="widthFix"></image>
 			</view>
 		</view> -->
-		<scan-dialog :show="show1" maskClosable>
+		<scan-dialog :show="show1" :outWidth="420" :outHeight="280" :padding="50" :iconWidth="120" :iconHeight="120"
+			maskClosable>
 		</scan-dialog>
 	</view>
 
@@ -140,7 +141,7 @@
 					menuItems: [{
 							text: '开始装配',
 							image: 'start-assembly',
-							router: 'pages/startToAssembly/startToAssembly'
+							router: '/pages/startToAssembly/startToAssembly'
 						},
 						{
 							text: '物料退回',
@@ -158,7 +159,7 @@
 						{
 							text: '物料退库',
 							image: 'back-list',
-							router: ''
+							router: '/pages/returnToWMS/returnToWMS'
 						}
 					]
 				}, {
@@ -283,10 +284,29 @@
 						// console.log(taskInfo);
 						// let taskId = taskInfo.RelatedId
 
-						uni.navigateTo({
-							url: '/pages/startToAssembly/startToAssembly'
-						})
 
+						let url = BaseApi + '/basedata/Listdata?id=' + JSON.parse(codeStr).Id
+						console.log(url)
+						uni.request({
+							url: url,
+							method: 'GET',
+							header: {
+								'Authorization': uni.getStorageSync("token"),
+								'Content-Type': 'application/json;charset=utf-8'
+							},
+							success: (res) => {
+								console.log(res)
+								if (res.statusCode === 200) {
+									uni.navigateTo({
+										url: router
+									})
+								}
+							},
+							fail: (res) => {
+								uni.hideLoading()
+								console.log(res)
+							}
+						})
 
 
 

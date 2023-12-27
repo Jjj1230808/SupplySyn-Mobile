@@ -107,9 +107,9 @@
 		},
 		methods: {
 			NFClogin() {
-				uni.navigateTo({
-					url: '/pages/function/function'
-				})
+				// uni.navigateTo({
+				// 	url: '/pages/function/function'
+				// })
 				uni.showToast({
 					title: '请贴近卡片！',
 					icon: 'error'
@@ -296,14 +296,11 @@
 			},
 			read(intent) {
 				uni.clearStorageSync()
-				uni.showLoading({
-					title: '正在登录...'
-				})
-				// uni.showToast({
-				// 	title: '正在读取数据',
-				// 	icon: 'loading',
-				// 	duration: 2000
-				// });
+				uni.showToast({
+					title: '正在读取数据',
+					icon: 'loading',
+					duration: 2000
+				});
 				// this.toast('请勿移开标签正在读取数据');
 				let that = this;
 				// NFC id
@@ -327,45 +324,70 @@
 				}
 				MyCardNum = MyCardNum.substring(0, 14)
 				console.log(MyCardNum);
-
-
-
-
 				// 发起请求
-				// let url = `https://qakimiworkbenchbe.schaefflercn.com/home/EmployeeCardNoValidation?cardNo=${MyCardNum}`
+				let url = `https://qakimiworkbenchbe.schaefflercn.com/Home/EmployeeCardNoValidation?cardNo=${MyCardNum}`
 				// let url = `https://kimihomebe.schaefflercn.com/Home/EmployeeCardNoValidation?cardNo=${MyCardNum}`
-				let url = BaseApi + '/SSO/LoingByCard?' + 'cardCode=' + MyCardNum
+				// let url = this.baseUrl_home + MyCardNum
 				console.log(url);
 				uni.request({
 					url: url,
 					method: "GET",
 					success: (res) => {
-						uni.hideLoading()
-						console.log(res)
-
-						if (res.data.result.succeeded) {
+						if (res.data.succeeded) {
+							uni.showLoading({
+								title: '正在登录...'
+							})
 							console.log(res.data);
-							// this.tenantId = res.data.data.tenantId
-							// this.adAccount = res.data.data.adAccount
-							uni.setStorageSync('userName', res.data.result.name)
-							uni.setStorageSync('user', res.data.result.account)
+							this.tenantId = res.data.data.tenantId
+							this.adAccount = res.data.data.adAccount
+							uni.setStorageSync('adAccount', this.adAccount)
+							let url1 =
+								`https://qakimiworkbenchbe.schaefflercn.com/home/Login4Pda?account=${this.adAccount}&tenantld=${this.tenantId}`
+							// let url1 =
+							// `https://kimihomebe.schaefflercn.com/Home/Login4Pda?account=${this.adAccount}&tenantId=${this.tenantId}`
+							// let url1 = this.login_account + 'account=' + this.adAccount + '&tenantId=' + this
+							// 	.tenantId
+							console.log(url1);
+							uni.request({
+								url: url1,
+								success: (ress) => {
+									uni.hideLoading()
+									console.log(ress);
+									// console.log(ress.succeeded);
+									if (ress.errMsg == 'request:ok') {
+										uni.showToast({
+											title: '登录成功'
+										})
+										that.transName = ress.data.user.name
+										console.log(that.transName);
+										uni.setStorageSync('userName', ress.data.user.name)
+										console.log(ress.data.token.scToken);
+										uni.setStorageSync('scToken', ress.data.token.scToken)
+										uni.navigateTo({
+											url: '/pages/function/function?tenants=' +
+												encodeURIComponent(JSON.stringify(ress.data
+													.tenants))
 
-							that.user = res.data.result.account
-							that.getToken()
-							// uni.showToast({
-							// 	title: '登录成功'
-							// })
-							// uni.navigateTo({
-							// 	url: '/pages/function/function'
-
-							// })
+										})
+									} else {
+										let errmsg = ress.errMsg
+										this.msgType = 'error'
+										this.messageText = errmsg
+										this.$refs.message.open()
+									}
 
 
+								},
+								fail: (ress) => {
+									uni.showToast({
+										title: '登录失败',
+										icon: 'error'
+									})
+								}
+							})
 
 						} else {
-							uni.hideLoading()
 							console.log(res)
-							let errMsg = res.data.result.message
 							// setTimeout(() => {
 							// 	uni.showToast({
 							// 		title: '卡号未维护！',
@@ -373,9 +395,8 @@
 							// 	})
 							// }, 2000)
 							uni.showToast({
-								title: errMsg,
-								icon: 'none',
-								duration: 5000
+								title: '卡号未维护！',
+								icon: 'error'
 							})
 
 						}
@@ -385,7 +406,6 @@
 
 					},
 					fail: (res) => {
-						uni.hideLoading()
 						console.log(res);
 						if (res.errMsg.indexOf('request:fail') !== -1) {
 							console.log('neterror');
@@ -416,9 +436,9 @@
 					console.log('NFC 数据：', data);
 					readResult = data;
 				} else {
-					// uni.showToast({
-					// 	title: '获取卡号成功'
-					// })
+					uni.showToast({
+						title: '获取卡号成功'
+					})
 					// this.toast(nfc_id);
 				}
 				return MyCardNum

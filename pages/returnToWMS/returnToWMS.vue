@@ -1,7 +1,7 @@
 <template>
 
 	<view>
-		<navbar style="position: fixed;left: 0;right: 0;top: 0;" title="开始装配" :isCanBack="true" text="ST03-80">
+		<navbar style="position: fixed;left: 0;right: 0;top: 0;" title="退库" :isCanBack="true" text="ST03-80">
 		</navbar>
 		<view class="search-input-container" v-if="isShowSearch" @click="isShowSearch= false">
 			<view class="search-area" @click.stop="">
@@ -24,6 +24,11 @@
 				<view>已用数量 <span style="color: #00893d;">40</span></view>
 				<view>剩余数量 <span style="color: #f2b704;">20</span></view>
 			</view>
+		</view>
+		<view class="tip">
+			<image style="width: 32rpx;height: 32rpx;margin-right: 10rpx;" src="../../static/img/qr_code_scanner.svg"
+				mode=""></image>
+			请点击扫码处处理剩余物料
 		</view>
 		<scroll-view class="material-list">
 			<view class="material-item" v-for="item in 6">
@@ -69,32 +74,49 @@
 					</view>
 				</view>
 				<view class="material-action">
-					<view>
+					<view class="to-do-disable">
+						<image src="../../static/img/check_circle.svg"
+							style="width: 28rpx;height: 28rpx;margin-right: 8rpx;" mode="">
+						</image>
+						<view style="margin-right: 8rpx;color: #646464;font-size: 24rpx;">待装配</view>
+						<view style="color: #646464;font-size: 24rpx;">0</view>
+					</view>
+					<view class="to-do">
 						<image src="../../static/img/watch_later.svg"
 							style="width: 28rpx;height: 28rpx;margin-right: 8rpx;" mode="">
 						</image>
 						<view style="margin-right: 8rpx;color: #646464;font-size: 24rpx;">待装配</view>
 						<view style="color: #F2B704;font-size: 24rpx;">2</view>
 					</view>
+					<view class="print-label">
+						<image src="../../static/img/print.svg" style="width: 28rpx;height: 28rpx;margin-right: 8rpx;"
+							mode="">
+						</image>
+						<view style="margin-right: 8rpx;color: #00893d;font-size: 24rpx;">补打标签</view>
+					</view>
 				</view>
 			</view>
 
 		</scroll-view>
 		<view class="action-buttons" v-if="!isShowSearch">
-			<button>
-				<image style="width: 36rpx;height: 36rpx;" src="../../static/img/assignment_return.svg">
-				</image>
-				物料退回
-			</button>
-			<button @click="finishAssembly">
-				<image style="width: 36rpx;height: 36rpx;" src="../../static/img/icon-wrapper.svg">
-				</image>
-				装配完成
-			</button>
-			<button @click="scanAssembly">
+
+			<!-- 	<button @click="scanAssembly" class="scan-btn-active">
 				<image style="width: 36rpx;height: 36rpx;" src="../../static/img/qr_code.svg">
 				</image>
-				扫码装配
+				扫码
+			</button> -->
+			<button @click="scanAssembly" class="scan-btn-disable">
+				<image style="width: 36rpx;height: 36rpx;" src="../../static/img/qr_code_disable.svg">
+				</image>
+				扫码
+			</button>
+			<!-- 	<button @click="finishAssembly" class="finish-assembly-btn-disable">
+				</image>
+				结束装配
+			</button> -->
+			<button @click="finishAssembly" class="finish-assembly-btn-active">
+				</image>
+				结束装配
 			</button>
 		</view>
 		<view class="link-top" @click="linkToTop" v-if="!isShowSearch">
@@ -103,11 +125,11 @@
 		<scan-dialog :show="showScan" maskClosable>
 		</scan-dialog>
 		<assembly-qty-dialog :show="showAssemblyQty" :title="title" :buttons="buttons" maskClosable @click="onClick1"
-			@close="onClose1"></assembly-qty-dialog>
+			numText="本次退库数量" @close="onClose1"></assembly-qty-dialog>
 		<scan-dialog :show="showMessage" imgUrl="success.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
 			:padding="76" :iconWidth="92" text="提交成功" maskClosable>
 		</scan-dialog>
-		<fui-dialog :show="showFinishConfirm" title="确认完成装配" content="请确认该工位装配是否已完成？" :buttons="buttons" maskClosable
+		<fui-dialog :show="showFinishConfirm" title="结束装配" content="是否结束装配,生成退库单？" :buttons="buttons" maskClosable
 			@click="onClickConfirm" @close="onCloseConfirm">
 		</fui-dialog>
 	</view>
@@ -118,67 +140,67 @@
 		BaseApi
 	} from '../../kevinrong-http/baseApi.js'
 
-	function utf8ByteToUnicodeStr(utf8Bytes) {
-		var unicodeStr = "";
-		for (var pos = 0; pos < utf8Bytes.length;) {
-			var flag = utf8Bytes[pos];
-			var unicode = 0;
-			if ((flag >>> 7) === 0) {
-				unicodeStr += String.fromCharCode(utf8Bytes[pos]);
-				pos += 1;
+	// function utf8ByteToUnicodeStr(utf8Bytes) {
+	// 	var unicodeStr = "";
+	// 	for (var pos = 0; pos < utf8Bytes.length;) {
+	// 		var flag = utf8Bytes[pos];
+	// 		var unicode = 0;
+	// 		if ((flag >>> 7) === 0) {
+	// 			unicodeStr += String.fromCharCode(utf8Bytes[pos]);
+	// 			pos += 1;
 
-			} else if ((flag & 0xFC) === 0xFC) {
-				unicode = (utf8Bytes[pos] & 0x3) << 30;
-				unicode |= (utf8Bytes[pos + 1] & 0x3F) << 24;
-				unicode |= (utf8Bytes[pos + 2] & 0x3F) << 18;
-				unicode |= (utf8Bytes[pos + 3] & 0x3F) << 12;
-				unicode |= (utf8Bytes[pos + 4] & 0x3F) << 6;
-				unicode |= (utf8Bytes[pos + 5] & 0x3F);
-				unicodeStr += String.fromCodePoint(unicode);
-				pos += 6;
+	// 		} else if ((flag & 0xFC) === 0xFC) {
+	// 			unicode = (utf8Bytes[pos] & 0x3) << 30;
+	// 			unicode |= (utf8Bytes[pos + 1] & 0x3F) << 24;
+	// 			unicode |= (utf8Bytes[pos + 2] & 0x3F) << 18;
+	// 			unicode |= (utf8Bytes[pos + 3] & 0x3F) << 12;
+	// 			unicode |= (utf8Bytes[pos + 4] & 0x3F) << 6;
+	// 			unicode |= (utf8Bytes[pos + 5] & 0x3F);
+	// 			unicodeStr += String.fromCodePoint(unicode);
+	// 			pos += 6;
 
-			} else if ((flag & 0xF8) === 0xF8) {
-				unicode = (utf8Bytes[pos] & 0x7) << 24;
-				unicode |= (utf8Bytes[pos + 1] & 0x3F) << 18;
-				unicode |= (utf8Bytes[pos + 2] & 0x3F) << 12;
-				unicode |= (utf8Bytes[pos + 3] & 0x3F) << 6;
-				unicode |= (utf8Bytes[pos + 4] & 0x3F);
-				unicodeStr += String.fromCodePoint(unicode);
-				pos += 5;
+	// 		} else if ((flag & 0xF8) === 0xF8) {
+	// 			unicode = (utf8Bytes[pos] & 0x7) << 24;
+	// 			unicode |= (utf8Bytes[pos + 1] & 0x3F) << 18;
+	// 			unicode |= (utf8Bytes[pos + 2] & 0x3F) << 12;
+	// 			unicode |= (utf8Bytes[pos + 3] & 0x3F) << 6;
+	// 			unicode |= (utf8Bytes[pos + 4] & 0x3F);
+	// 			unicodeStr += String.fromCodePoint(unicode);
+	// 			pos += 5;
 
-			} else if ((flag & 0xF0) === 0xF0) {
-				unicode = (utf8Bytes[pos] & 0xF) << 18;
-				unicode |= (utf8Bytes[pos + 1] & 0x3F) << 12;
-				unicode |= (utf8Bytes[pos + 2] & 0x3F) << 6;
-				unicode |= (utf8Bytes[pos + 3] & 0x3F);
-				unicodeStr += String.fromCodePoint(unicode);
-				pos += 4;
+	// 		} else if ((flag & 0xF0) === 0xF0) {
+	// 			unicode = (utf8Bytes[pos] & 0xF) << 18;
+	// 			unicode |= (utf8Bytes[pos + 1] & 0x3F) << 12;
+	// 			unicode |= (utf8Bytes[pos + 2] & 0x3F) << 6;
+	// 			unicode |= (utf8Bytes[pos + 3] & 0x3F);
+	// 			unicodeStr += String.fromCodePoint(unicode);
+	// 			pos += 4;
 
-			} else if ((flag & 0xE0) === 0xE0) {
-				unicode = (utf8Bytes[pos] & 0x1F) << 12;;
-				unicode |= (utf8Bytes[pos + 1] & 0x3F) << 6;
-				unicode |= (utf8Bytes[pos + 2] & 0x3F);
-				unicodeStr += String.fromCharCode(unicode);
-				pos += 3;
+	// 		} else if ((flag & 0xE0) === 0xE0) {
+	// 			unicode = (utf8Bytes[pos] & 0x1F) << 12;;
+	// 			unicode |= (utf8Bytes[pos + 1] & 0x3F) << 6;
+	// 			unicode |= (utf8Bytes[pos + 2] & 0x3F);
+	// 			unicodeStr += String.fromCharCode(unicode);
+	// 			pos += 3;
 
-			} else if ((flag & 0xC0) === 0xC0) { //110
-				unicode = (utf8Bytes[pos] & 0x3F) << 6;
-				unicode |= (utf8Bytes[pos + 1] & 0x3F);
-				unicodeStr += String.fromCharCode(unicode);
-				pos += 2;
+	// 		} else if ((flag & 0xC0) === 0xC0) { //110
+	// 			unicode = (utf8Bytes[pos] & 0x3F) << 6;
+	// 			unicode |= (utf8Bytes[pos + 1] & 0x3F);
+	// 			unicodeStr += String.fromCharCode(unicode);
+	// 			pos += 2;
 
-			} else {
-				unicodeStr += String.fromCharCode(utf8Bytes[pos]);
-				pos += 1;
-			}
-		}
-		return unicodeStr;
-	}
+	// 		} else {
+	// 			unicodeStr += String.fromCharCode(utf8Bytes[pos]);
+	// 			pos += 1;
+	// 		}
+	// 	}
+	// 	return unicodeStr;
+	// }
 
-	var main, receiver, filter;
-	var ScanDeviceClass = plus.android.importClass("android.device.ScanDevice");
-	var scanDevice;
-	scanDevice = new ScanDeviceClass();
+	// var main, receiver, filter;
+	// var ScanDeviceClass = plus.android.importClass("android.device.ScanDevice");
+	// var scanDevice;
+	// scanDevice = new ScanDeviceClass();
 	export default {
 		data() {
 			return {
@@ -186,7 +208,7 @@
 				materialCode: '',
 				showScan: false,
 				showAssemblyQty: false,
-				title: '选择装配数量',
+				title: '选择退库数量',
 				buttons: [{
 					text: '取消',
 					color: '#646464'
@@ -200,23 +222,7 @@
 			};
 		},
 		onLoad() {
-			let url = BaseApi + '/basedata/Listdata'
-			console.log(url)
-			uni.request({
-				url: url,
-				method: 'GET',
-				header: {
-					'Authorization': uni.getStorageSync("token"),
-					'Content-Type': 'application/json;charset=utf-8'
-				},
-				success: (res) => {
-					console.log(res)
-				},
-				fail: (res) => {
-					uni.hideLoading()
-					console.log(res)
-				}
-			})
+
 		},
 		watch: {
 
@@ -239,11 +245,17 @@
 
 
 			},
-			onClickConfirm() {
-				this.onCloseConfirm()
-				uni.navigateTo({
-					url: '/pages/returnToWMS/returnToWMS'
-				})
+			onClickConfirm(e) {
+				if (e.index === 1) {
+					this.onCloseConfirm()
+					this.showMessage = true
+					setTimeout(() => {
+						this.showMessage = false
+					}, 3000)
+				} else {
+					this.onCloseConfirm()
+				}
+
 			},
 			onCloseConfirm() {
 				this.showFinishConfirm = false
@@ -278,6 +290,10 @@
 					}
 				});
 			},
+			finishAssembly() {
+
+				this.showFinishConfirm = true
+			},
 			scanAssembly() {
 				this.showAssemblyQty = true
 				// this.showScan = true
@@ -288,9 +304,7 @@
 				// 	this.showScan = false
 				// }, 3000)
 			},
-			finishAssembly() {
-				this.showFinishConfirm = true
-			},
+
 			enterMaterialCode(e) {
 
 				console.log(e)
@@ -381,45 +395,63 @@
 	}
 
 	.action-buttons>button {
-		width: 213rpx;
 		height: 90rpx;
 		display: flex;
 		align-items: center;
-		justify-content: center;
 		border-radius: 10rpx;
 		font-size: 28rpx;
 		outline: none;
+		font-weight: bold;
 	}
 
 	.action-buttons>button>image {
 		margin-right: 6rpx;
 	}
 
-	.action-buttons>button:nth-child(1) {
-		border: 2px solid #e62c27;
-		background-color: #fff;
-		color: #e62c27;
-		box-sizing: border-box;
-
-	}
-
-	.action-buttons>button:nth-child(2) {
-		border: 2px solid #00893d;
-		background-color: #fff;
-		color: #00893d;
-		box-sizing: border-box;
-	}
-
-	.action-buttons>button:nth-child(3) {
+	.scan-btn-active {
 		background-color: #00893d;
 		color: #fff;
+		width: 246rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-right: 0;
 	}
+
+	.scan-btn-disable {
+		background: rgba(0, 0, 0, 0.12);
+		color: rgba(0, 0, 0, 0.38);
+		width: 246rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-right: 0;
+	}
+
+	.finish-assembly-btn-active {
+		background-color: #00893d;
+		color: #fff;
+		width: 446rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.finish-assembly-btn-disable {
+		background: rgba(0, 0, 0, 0.12);
+		color: rgba(0, 0, 0, 0.38);
+		width: 446rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
 
 	.material-list {
 		position: absolute;
 		left: 0;
 		right: 0;
-		top: 276rpx;
+		top: 333rpx;
 		padding-top: 20rpx;
 		overflow: auto;
 		padding-bottom: 130rpx;
@@ -530,7 +562,9 @@
 		margin-top: 12rpx;
 	}
 
-	.material-action>view {
+	.material-action>button {}
+
+	.to-do {
 		display: flex;
 		align-items: center;
 		width: 156rpx;
@@ -538,6 +572,28 @@
 		background-color: rgba(252, 207, 70, 0.20);
 		padding: 0 12rpx;
 		border-radius: 4rpx;
+	}
+
+	.to-do-disable {
+		display: flex;
+		align-items: center;
+		width: 156rpx;
+		height: 50rpx;
+		padding: 0 12rpx;
+		border-radius: 4rpx;
+		background: rgba(156, 162, 165, 0.10);
+	}
+
+	.print-label {
+		display: flex;
+		align-items: center;
+		width: 172rpx;
+		height: 50rpx;
+		padding: 0 12rpx;
+		border-radius: 4rpx;
+		color: #00893d;
+		border: 1rpx solid #00893d;
+		box-sizing: border-box;
 	}
 
 	.link-top {
@@ -589,5 +645,21 @@
 	.filter-bar input {
 		width: 580rpx;
 		font-size: 28rpx;
+	}
+
+	.tip {
+		display: flex;
+		align-items: center;
+		height: 57rpx;
+		justify-content: center;
+		width: 100%;
+		background: #E5F4E9;
+		position: fixed;
+		top: 276rpx;
+		left: 0;
+		right: 0;
+		color: #00893d;
+		font-size: 28rpx;
+		font-weight: bold;
 	}
 </style>

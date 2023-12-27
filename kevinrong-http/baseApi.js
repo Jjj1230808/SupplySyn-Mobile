@@ -1,5 +1,5 @@
 // const BaseApi = 'https://www.baidu.com'
-const BaseApi = 'http://ws003260:1997/api'
+const BaseApi = 'http://qakimigatewaybe.schaefflercn.com/ssf/gateway'
 
 export {
 	BaseApi
