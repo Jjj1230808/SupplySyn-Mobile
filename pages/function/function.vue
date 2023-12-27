@@ -298,7 +298,8 @@
 								console.log(res)
 								if (res.statusCode === 200) {
 									uni.navigateTo({
-										url: router
+										url: router,
+										data: res
 									})
 								}
 							},

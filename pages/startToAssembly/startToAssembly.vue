@@ -28,9 +28,13 @@
 		<scroll-view class="material-list">
 			<view class="material-item" v-for="item in 6">
 				<view class="material-info">
-					<view class="material-type">
+					<!-- <view class="material-type-regular">
 						<image style="width: 64rpx;height: 64rpx;" src="../../static/img/Frame.svg" mode=""></image>
 						<view>常规件</view>
+					</view> -->
+					<view class="material-type-kanban">
+						<image style="width: 64rpx;height: 64rpx;" src="../../static/img/kanban.svg" mode=""></image>
+						<view>看板件</view>
 					</view>
 					<view class="material-label">
 						<view>
@@ -118,67 +122,67 @@
 		BaseApi
 	} from '../../kevinrong-http/baseApi.js'
 
-	function utf8ByteToUnicodeStr(utf8Bytes) {
-		var unicodeStr = "";
-		for (var pos = 0; pos < utf8Bytes.length;) {
-			var flag = utf8Bytes[pos];
-			var unicode = 0;
-			if ((flag >>> 7) === 0) {
-				unicodeStr += String.fromCharCode(utf8Bytes[pos]);
-				pos += 1;
+	// function utf8ByteToUnicodeStr(utf8Bytes) {
+	// 	var unicodeStr = "";
+	// 	for (var pos = 0; pos < utf8Bytes.length;) {
+	// 		var flag = utf8Bytes[pos];
+	// 		var unicode = 0;
+	// 		if ((flag >>> 7) === 0) {
+	// 			unicodeStr += String.fromCharCode(utf8Bytes[pos]);
+	// 			pos += 1;
 
-			} else if ((flag & 0xFC) === 0xFC) {
-				unicode = (utf8Bytes[pos] & 0x3) << 30;
-				unicode |= (utf8Bytes[pos + 1] & 0x3F) << 24;
-				unicode |= (utf8Bytes[pos + 2] & 0x3F) << 18;
-				unicode |= (utf8Bytes[pos + 3] & 0x3F) << 12;
-				unicode |= (utf8Bytes[pos + 4] & 0x3F) << 6;
-				unicode |= (utf8Bytes[pos + 5] & 0x3F);
-				unicodeStr += String.fromCodePoint(unicode);
-				pos += 6;
+	// 		} else if ((flag & 0xFC) === 0xFC) {
+	// 			unicode = (utf8Bytes[pos] & 0x3) << 30;
+	// 			unicode |= (utf8Bytes[pos + 1] & 0x3F) << 24;
+	// 			unicode |= (utf8Bytes[pos + 2] & 0x3F) << 18;
+	// 			unicode |= (utf8Bytes[pos + 3] & 0x3F) << 12;
+	// 			unicode |= (utf8Bytes[pos + 4] & 0x3F) << 6;
+	// 			unicode |= (utf8Bytes[pos + 5] & 0x3F);
+	// 			unicodeStr += String.fromCodePoint(unicode);
+	// 			pos += 6;
 
-			} else if ((flag & 0xF8) === 0xF8) {
-				unicode = (utf8Bytes[pos] & 0x7) << 24;
-				unicode |= (utf8Bytes[pos + 1] & 0x3F) << 18;
-				unicode |= (utf8Bytes[pos + 2] & 0x3F) << 12;
-				unicode |= (utf8Bytes[pos + 3] & 0x3F) << 6;
-				unicode |= (utf8Bytes[pos + 4] & 0x3F);
-				unicodeStr += String.fromCodePoint(unicode);
-				pos += 5;
+	// 		} else if ((flag & 0xF8) === 0xF8) {
+	// 			unicode = (utf8Bytes[pos] & 0x7) << 24;
+	// 			unicode |= (utf8Bytes[pos + 1] & 0x3F) << 18;
+	// 			unicode |= (utf8Bytes[pos + 2] & 0x3F) << 12;
+	// 			unicode |= (utf8Bytes[pos + 3] & 0x3F) << 6;
+	// 			unicode |= (utf8Bytes[pos + 4] & 0x3F);
+	// 			unicodeStr += String.fromCodePoint(unicode);
+	// 			pos += 5;
 
-			} else if ((flag & 0xF0) === 0xF0) {
-				unicode = (utf8Bytes[pos] & 0xF) << 18;
-				unicode |= (utf8Bytes[pos + 1] & 0x3F) << 12;
-				unicode |= (utf8Bytes[pos + 2] & 0x3F) << 6;
-				unicode |= (utf8Bytes[pos + 3] & 0x3F);
-				unicodeStr += String.fromCodePoint(unicode);
-				pos += 4;
+	// 		} else if ((flag & 0xF0) === 0xF0) {
+	// 			unicode = (utf8Bytes[pos] & 0xF) << 18;
+	// 			unicode |= (utf8Bytes[pos + 1] & 0x3F) << 12;
+	// 			unicode |= (utf8Bytes[pos + 2] & 0x3F) << 6;
+	// 			unicode |= (utf8Bytes[pos + 3] & 0x3F);
+	// 			unicodeStr += String.fromCodePoint(unicode);
+	// 			pos += 4;
 
-			} else if ((flag & 0xE0) === 0xE0) {
-				unicode = (utf8Bytes[pos] & 0x1F) << 12;;
-				unicode |= (utf8Bytes[pos + 1] & 0x3F) << 6;
-				unicode |= (utf8Bytes[pos + 2] & 0x3F);
-				unicodeStr += String.fromCharCode(unicode);
-				pos += 3;
+	// 		} else if ((flag & 0xE0) === 0xE0) {
+	// 			unicode = (utf8Bytes[pos] & 0x1F) << 12;;
+	// 			unicode |= (utf8Bytes[pos + 1] & 0x3F) << 6;
+	// 			unicode |= (utf8Bytes[pos + 2] & 0x3F);
+	// 			unicodeStr += String.fromCharCode(unicode);
+	// 			pos += 3;
 
-			} else if ((flag & 0xC0) === 0xC0) { //110
-				unicode = (utf8Bytes[pos] & 0x3F) << 6;
-				unicode |= (utf8Bytes[pos + 1] & 0x3F);
-				unicodeStr += String.fromCharCode(unicode);
-				pos += 2;
+	// 		} else if ((flag & 0xC0) === 0xC0) { //110
+	// 			unicode = (utf8Bytes[pos] & 0x3F) << 6;
+	// 			unicode |= (utf8Bytes[pos + 1] & 0x3F);
+	// 			unicodeStr += String.fromCharCode(unicode);
+	// 			pos += 2;
 
-			} else {
-				unicodeStr += String.fromCharCode(utf8Bytes[pos]);
-				pos += 1;
-			}
-		}
-		return unicodeStr;
-	}
+	// 		} else {
+	// 			unicodeStr += String.fromCharCode(utf8Bytes[pos]);
+	// 			pos += 1;
+	// 		}
+	// 	}
+	// 	return unicodeStr;
+	// }
 
-	var main, receiver, filter;
-	var ScanDeviceClass = plus.android.importClass("android.device.ScanDevice");
-	var scanDevice;
-	scanDevice = new ScanDeviceClass();
+	// var main, receiver, filter;
+	// var ScanDeviceClass = plus.android.importClass("android.device.ScanDevice");
+	// var scanDevice;
+	// scanDevice = new ScanDeviceClass();
 	export default {
 		data() {
 			return {
@@ -195,28 +199,12 @@
 					color: '#00893d'
 				}],
 				showMessage: false,
-				showFinishConfirm: false
-
+				showFinishConfirm: false,
+				materialList: []
 			};
 		},
-		onLoad() {
-			let url = BaseApi + '/basedata/Listdata'
-			console.log(url)
-			uni.request({
-				url: url,
-				method: 'GET',
-				header: {
-					'Authorization': uni.getStorageSync("token"),
-					'Content-Type': 'application/json;charset=utf-8'
-				},
-				success: (res) => {
-					console.log(res)
-				},
-				fail: (res) => {
-					uni.hideLoading()
-					console.log(res)
-				}
-			})
+		onLoad(options) {
+			console.log(this.$route.query)
 		},
 		watch: {
 
@@ -443,7 +431,7 @@
 		content: "";
 	}
 
-	.material-type {
+	.material-type-regular {
 		width: 100rpx;
 		height: 100rpx;
 		background: rgba(29, 155, 178, 0.10);
@@ -456,11 +444,37 @@
 		float: left;
 	}
 
-	.material-type>view {
+	.material-type-regular>view {
 		position: absolute;
 		bottom: 0;
 		height: 38rpx;
 		background-color: #1d9bb2;
+		color: #fff;
+		font-size: 24rpx;
+		line-height: 38rpx;
+		left: 0;
+		right: 0;
+		text-align: center;
+	}
+
+	.material-type-kanban {
+		width: 100rpx;
+		height: 100rpx;
+		background: rgba(86, 180, 150, 0.10);
+		border-radius: 10rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		position: relative;
+		overflow: hidden;
+		float: left;
+	}
+
+	.material-type-kanban>view {
+		position: absolute;
+		bottom: 0;
+		height: 38rpx;
+		background: var(--Light-charts-chart-6, #56B496);
 		color: #fff;
 		font-size: 24rpx;
 		line-height: 38rpx;

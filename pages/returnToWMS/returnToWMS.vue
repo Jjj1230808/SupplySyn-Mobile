@@ -74,13 +74,23 @@
 					</view>
 				</view>
 				<view class="material-action">
+					<!-- <view class="back">
+						<view style="color: #fff;font-size: 24rpx;">退回</view>
+					</view>
+					<view class="done">
+						<image src="../../static/img/check_circle_active.svg"
+							style="width: 28rpx;height: 28rpx;margin-right: 8rpx;" mode="">
+						</image>
+						<view style="margin-right: 8rpx;color: #646464;font-size: 24rpx;">已装配</view>
+						<view style="color: #129B49;font-size: 24rpx;">2</view>
+					</view>
 					<view class="to-do-disable">
 						<image src="../../static/img/check_circle.svg"
 							style="width: 28rpx;height: 28rpx;margin-right: 8rpx;" mode="">
 						</image>
 						<view style="margin-right: 8rpx;color: #646464;font-size: 24rpx;">待装配</view>
 						<view style="color: #646464;font-size: 24rpx;">0</view>
-					</view>
+					</view> -->
 					<view class="to-do">
 						<image src="../../static/img/watch_later.svg"
 							style="width: 28rpx;height: 28rpx;margin-right: 8rpx;" mode="">
@@ -93,6 +103,13 @@
 							mode="">
 						</image>
 						<view style="margin-right: 8rpx;color: #00893d;font-size: 24rpx;">补打标签</view>
+					</view>
+					<view class="returned">
+						<image src="../../static/img/assignment_returned.svg"
+							style="width: 28rpx;height: 28rpx;margin-right: 8rpx;" mode="">
+						</image>
+						<view style="margin-right: 8rpx;color: #646464;font-size: 24rpx;">退库</view>
+						<view style="color: #FF9800;font-size: 24rpx;">2</view>
 					</view>
 				</view>
 			</view>
@@ -562,7 +579,30 @@
 		margin-top: 12rpx;
 	}
 
-	.material-action>button {}
+	.material-action>view:not(:last-child) {
+		margin-right: 20rpx;
+	}
+
+	.back {
+		display: flex;
+		align-items: center;
+		width: 108rpx;
+		height: 50rpx;
+		background: #E62C27;
+		padding: 0 12rpx;
+		border-radius: 4rpx;
+		justify-content: center;
+	}
+
+	.done {
+		display: flex;
+		align-items: center;
+		width: 156rpx;
+		height: 50rpx;
+		background: rgba(18, 155, 73, 0.10);
+		padding: 0 12rpx;
+		border-radius: 4rpx;
+	}
 
 	.to-do {
 		display: flex;
@@ -570,6 +610,16 @@
 		width: 156rpx;
 		height: 50rpx;
 		background-color: rgba(252, 207, 70, 0.20);
+		padding: 0 12rpx;
+		border-radius: 4rpx;
+	}
+
+	.returned {
+		display: flex;
+		align-items: center;
+		width: 148rpx;
+		height: 50rpx;
+		background: rgba(255, 152, 0, 0.15);
 		padding: 0 12rpx;
 		border-radius: 4rpx;
 	}
