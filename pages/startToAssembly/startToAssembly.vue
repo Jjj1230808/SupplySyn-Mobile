@@ -26,50 +26,50 @@
 			</view>
 		</view>
 		<scroll-view class="material-list">
-			<view class="material-item" v-for="item in 6">
+			<view class="material-item" v-for="(item,index) in materialList">
 				<view class="material-info">
-					<!-- <view class="material-type-regular">
+					<view class="material-type-regular" v-if="item.materialType===10">
 						<image style="width: 64rpx;height: 64rpx;" src="../../static/img/Frame.svg" mode=""></image>
 						<view>常规件</view>
-					</view> -->
-					<view class="material-type-kanban">
+					</view>
+					<view class="material-type-kanban" v-if="item.materialType===20">
 						<image style="width: 64rpx;height: 64rpx;" src="../../static/img/kanban.svg" mode=""></image>
 						<view>看板件</view>
 					</view>
 					<view class="material-label">
 						<view>
 							<view>物料名称</view>
-							<view>黑灰色PC板</view>
+							<view>{{item.description}}</view>
 						</view>
 						<view>
 							<view>物料编号</view>
-							<view>M-10567434AA-K17001</view>
+							<view>{{item.materialNo}}</view>
 						</view>
 						<view>
 							<view>物料位置</view>
-							<view>XXXX</view>
+							<view>{{item.workshopAreaName}}</view>
 						</view>
 					</view>
 				</view>
 				<view class="material-qty">
 					<view>
 						<view>领料数量</view>
-						<view style="color: #414546">4</view>
+						<view style="color: #414546">{{totalQuantity}}</view>
 						<span></span>
 					</view>
 					<view>
 						<view>装配数量</view>
-						<view style="color: #00893d;">2</view>
+						<view style="color: #00893d;">{{quantityUsed}}</view>
 						<span></span>
 					</view>
 					<view>
 						<view>退库数量</view>
-						<view>2</view>
+						<view>{{returnQuantity}}</view>
 						<span></span>
 					</view>
 					<view>
 						<view>报废数量</view>
-						<view>0</view>
+						<view>{{scrapQuantity}}</view>
 					</view>
 				</view>
 				<view class="material-action">
@@ -78,7 +78,7 @@
 							style="width: 28rpx;height: 28rpx;margin-right: 8rpx;" mode="">
 						</image>
 						<view style="margin-right: 8rpx;color: #646464;font-size: 24rpx;">待装配</view>
-						<view style="color: #F2B704;font-size: 24rpx;">2</view>
+						<view style="color: #F2B704;font-size: 24rpx;">{{remainingQuantity}}</view>
 					</view>
 				</view>
 			</view>
@@ -200,7 +200,8 @@
 				}],
 				showMessage: false,
 				showFinishConfirm: false,
-				materialList: []
+				materialList: [],
+				Id: ''
 			};
 		},
 		onLoad(options) {
@@ -280,9 +281,27 @@
 				this.showFinishConfirm = true
 			},
 			enterMaterialCode(e) {
-
 				console.log(e)
 				this.isShowSearch = false
+				uni.showLoading({
+					title: '正在搜索'
+				})
+				let url = BaseApi + '/Search?Id=' + this.Id + '&Info=' + e.detail.value;
+				uni.request({
+					url: url,
+					method: 'GET',
+					header: {
+						'Authorization': uni.getStorageSync("token"),
+						'Content-Type': 'application/json;charset=utf-8'
+					},
+					success: (res) => {
+						uni.hideLoading()
+					},
+					fail: (err) => {
+						uni.hideLoading()
+					}
+				});
+
 			},
 			closeSearch() {
 				this.isShowSearch = false

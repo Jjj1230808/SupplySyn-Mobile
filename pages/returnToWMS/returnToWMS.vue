@@ -31,7 +31,7 @@
 			请点击扫码处处理剩余物料
 		</view>
 		<scroll-view class="material-list">
-			<view class="material-item" v-for="item in 6">
+			<view class="material-item" v-for="item in materialList">
 				<view class="material-info">
 					<view class="material-type">
 						<image style="width: 64rpx;height: 64rpx;" src="../../static/img/Frame.svg" mode=""></image>
@@ -234,7 +234,8 @@
 					color: '#00893d'
 				}],
 				showMessage: false,
-				showFinishConfirm: false
+				showFinishConfirm: false,
+				materialList: []
 
 			};
 		},

@@ -46,6 +46,9 @@
 		<scan-dialog :show="show1" :outWidth="420" :outHeight="280" :padding="50" :iconWidth="120" :iconHeight="120"
 			maskClosable>
 		</scan-dialog>
+		<scan-dialog :show="showError" imgUrl="Error.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
+			:padding="76" :iconWidth="92" :text="message" maskClosable>
+		</scan-dialog>
 	</view>
 
 </template>
@@ -129,6 +132,8 @@
 				// placeHolder: '点击此处切换Tenant',
 				// adAccount: '',
 				modalVisible: false,
+				message: '',
+				showError: false,
 				buttons: [{
 					text: '取消',
 					color: '#ccc'
@@ -284,31 +289,55 @@
 						// console.log(taskInfo);
 						// let taskId = taskInfo.RelatedId
 
+						console.log(BaseApi)
+						let url1 = BaseApi + '/Basedata/Listdata?Id=' + JSON.parse(codeStr).Id;
+						let url2 = BaseApi + '/Basedata/Topdata?Id=' + JSON.parse(codeStr).Id;
 
-						let url = BaseApi + '/basedata/Listdata?id=' + JSON.parse(codeStr).Id
-						console.log(url)
-						uni.request({
-							url: url,
-							method: 'GET',
-							header: {
-								'Authorization': uni.getStorageSync("token"),
-								'Content-Type': 'application/json;charset=utf-8'
-							},
-							success: (res) => {
-								console.log(res)
-								if (res.statusCode === 200) {
-									uni.navigateTo({
-										url: router,
-										data: res
-									})
+						let request1 = new Promise((resolve, reject) => {
+							uni.request({
+								url: url1,
+								method: 'GET',
+								header: {
+									'Authorization': uni.getStorageSync("token"),
+									'Content-Type': 'application/json;charset=utf-8'
+								},
+								success: (res) => {
+									resolve(res);
+								},
+								fail: (err) => {
+									reject(err);
 								}
-							},
-							fail: (res) => {
-								uni.hideLoading()
-								console.log(res)
-							}
-						})
+							});
+						});
 
+						let request2 = new Promise((resolve, reject) => {
+							uni.request({
+								url: url2,
+								method: 'GET',
+								header: {
+									'Authorization': uni.getStorageSync("token"),
+									'Content-Type': 'application/json;charset=utf-8'
+								},
+								success: (res) => {
+									resolve(res);
+								},
+								fail: (err) => {
+									reject(err);
+								}
+							});
+						});
+
+						Promise.all([request1, request2]).then(([res1, res2]) => {
+							console.log(res1);
+							console.log(res2)
+							if (res1.data.statusCode === 400) {
+								this.showError = true
+							}
+							// 在这里写你的逻辑
+						}).catch(err => {
+							console.log(err)
+							// 处理请求失败的情况
+						});
 
 
 
