@@ -1,0 +1,23 @@
+{
+    "id": "fui-dialog",
+    "name": "Dialog 对话框（fui-dialog）",
+    "version": "v1.0.0",
+    "description": "Dialog 对话框，在浮层中显示，引导用户进行相关操作。",
+    "keywords": [
+        "Dialog",
+        "对话框",
+        "组件",
+        "FirstUI",
+        "Nvue"
+    ],
+    "dcloudext": {
+        "category": [
+            "前端组件",
+            "通用组件"
+        ]
+    },
+    "dependencies": {
+        "dateformat": "^5.0.3",
+        "uqrcodejs": "^4.0.7"
+    }
+}

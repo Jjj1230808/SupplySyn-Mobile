@@ -1,0 +1,79 @@
+@import '@/uni_modules/uni-scss/variables.scss';
+
+body{
+      margin: 0; /* 外边距 */
+      padding: 0; /* 内边距 */
+      border: 0; /* 边框 */
+	  font-size: 100%;
+}
+a {
+    text-decoration: none; /* 去除默认下划线 */
+}
+*{
+	box-sizing: border-box;
+}
+
+a:focus {
+     outline:thin dotted; /* 处理“outline”在Chrome浏览器中和其它浏览器之间的不一致 */
+}
+
+a:active, a:hover {
+      outline: 0;
+}
+
+:root{
+	box-sizing:border-box;
+}
+uni-button[type=primary]{
+	background-color: #00893d;
+	font-size: 29.17rpx;
+	height: 100%;
+	line-height: 72.92rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+uni-input{
+	height: 100%;
+	
+}
+.uni-input-input{
+	font-size: 29.17rpx;
+}
+.uni-input-placeholder{
+	font-size: 26rpx;
+}
+
+.uni-list:after{
+	content: none;
+}
+.uni-radio-group,uni-checkbox-group {
+display: flex;
+}
+.uni-radio-input-checked{
+	background-color: #00893d !important;
+	border-color: #00893d !important; 
+}
+uni-switch .uni-switch-input.uni-switch-input-checked{
+	background-color: #00893d !important;
+	border-color: #00893d !important; 
+}
+uni-radio .uni-radio-input{
+	width: 33.33rpx;
+	height:33.33rpx;
+}
+.uni-list-cell-pd{
+	padding: 0;
+}
+uni-checkbox .uni-checkbox-input{
+	width: 33.33rpx;
+	height: 33.33rpx;
+}
+.schaefflerGreen{
+	color: #00893d;
+	margin-left: 5.21rpx;
+}
+
+::-webkit-scrollbar{
+	display: none;
+}
