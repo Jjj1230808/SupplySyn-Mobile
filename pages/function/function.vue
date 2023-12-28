@@ -151,7 +151,7 @@
 						{
 							text: '物料退回',
 							image: 'material-back',
-							router: ''
+							router: '/pages/materialReturn/materialReturn'
 						}
 					]
 				}, {
@@ -159,7 +159,7 @@
 					menuItems: [{
 							text: '补打标签',
 							image: 'label',
-							router: ''
+							router: '/pages/reprintLabel/reprintLabel'
 						},
 						{
 							text: '物料退库',
@@ -172,10 +172,10 @@
 					menuItems: [{
 						text: '退库单',
 						image: 'back-list',
-						router: ''
+						router: '/pages/returnList/returnList'
 					}, ]
 				}],
-				currentRoute: ''
+				currentRoute: '/pages/returnList/returnList'
 			}
 		},
 		// onUnload() {

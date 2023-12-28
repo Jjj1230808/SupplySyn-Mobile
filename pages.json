@@ -26,6 +26,27 @@
 			}
 
 		}, {
+			"path": "pages/returnList/returnList",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/reprintLabel/reprintLabel",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/materialReturn/materialReturn",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
 			"path": "pages/successpage/successpage",
 			"style": {
 				"navigationBarTitleText": "",
