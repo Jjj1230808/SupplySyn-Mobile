@@ -8,40 +8,42 @@
 					mode="">
 				</image>
 				<view style="margin-right: 8rpx;color: #646464;font-size: 24rpx;">待装配</view>
-				<view style="color: #F2B704;font-size: 24rpx;">2</view>
+				<view style="color: #F2B704;font-size: 24rpx;">{{materialInfo.remainingQuantity}}</view>
 			</view>
 			<view class="fui-dialog__body">
 				<view class="material-text">
 					<view>物料名称</view>
-					<view>黑灰色PC板</view>
+					<view>{{materialInfo.description}}</view>
 				</view>
 				<view class="material-text">
 					<view>物料编号</view>
-					<view>M-10567434AA-K17001</view>
+					<view>{{materialInfo.materialNo}}</view>
 				</view>
 				<view class="material-text">
 					<view>物料位置</view>
-					<view>XXXX</view>
+					<view>
+						{{materialInfo.workshopAreaName}}-{{materialInfo.materialCarNo}}-{{materialInfo.materialBoxNo}}
+					</view>
 				</view>
 				<view class="material-text">
 					<view>领料数量</view>
-					<view>3</view>
+					<view>{{materialInfo.totalQuantity}}</view>
 				</view>
 				<view class="material-text">
 					<view>装配数量</view>
-					<view>0</view>
+					<view style="color: #00893d;">{{materialInfo.quantityUsed}}</view>
 				</view>
 				<view class="material-text">
 					<view>退库数量</view>
-					<view>0</view>
+					<view>{{materialInfo.returnQuantity}}</view>
 				</view>
 				<view class="material-text">
 					<view>报废数量</view>
-					<view>0</view>
+					<view>{{materialInfo.scrapQuantity}}</view>
 				</view>
 				<view class="assembly-num">
 					<view>{{numText}}</view>
-					<cc-numbox maxNum="3" @change="changeNum"></cc-numbox>
+					<cc-numbox :maxNum="materialInfo.quantityUsed" @change="changeNum"></cc-numbox>
 				</view>
 			</view>
 			<view class="fui-dialog__footer">
@@ -61,6 +63,12 @@
 		name: 'fui-dialog',
 		emits: ['click', 'close'],
 		props: {
+			materialInfo: {
+				type: Object,
+				default: function() {
+					return {};
+				}
+			},
 			numText: {
 				type: String,
 				default: '本次装配数量'

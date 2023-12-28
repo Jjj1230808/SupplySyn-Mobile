@@ -113,7 +113,7 @@
 			maskClosable>
 		</scan-dialog>
 		<assembly-qty-dialog :show="showAssemblyQty" :title="title" :buttons="buttons" maskClosable @click="onClick1"
-			@close="onClose1"></assembly-qty-dialog>
+			@close="onClose1" :materialInfo="materialInfo"></assembly-qty-dialog>
 		<scan-dialog :show="showMessage" imgUrl="success.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
 			:padding="76" :iconWidth="92" text="提交成功" maskClosable>
 		</scan-dialog>
@@ -213,15 +213,24 @@
 				topData: {},
 				Id: '',
 				showError: false,
-				message: ''
+				message: '',
+				materialInfo: {}
 			};
 		},
 		onLoad(options) {
 			this.Id = JSON.parse((options.ListData)).id;
 			this.materialList = JSON.parse((options.ListData)).data
 			this.topData = JSON.parse((options.topData))
-			console.log(JSON.parse((options.ListData)))
-			console.log(JSON.parse((options.topData)))
+
+		},
+		onShow() {
+			scanDevice.setOutScanMode(0); // 扫描模式=广播
+		},
+		onHide() {
+			console.log('onhide')
+			scanDevice.setOutScanMode(1); // 扫描模式=输入框
+			scanDevice.stopScan()
+			this.unregisterScan()
 		},
 		onShow() {
 			this.initScan()
@@ -236,23 +245,186 @@
 			},
 			onClick1(e) {
 				console.log(e)
+				let _this = this
+
 				if (e.index === 1) {
-					this.onClose1()
-					this.showMessage = true
-					setTimeout(() => {
-						this.showMessage = false
-					}, 3000)
+					uni.showLoading({
+						title: '正在确认'
+					})
+					let url = BaseApi + '/Assemble/AssembleNumber?Mid=' + _this.materialInfo.materialId +
+						'&returnQuantity=' + e.currentNum;
+					console.log(url)
+					uni.request({
+						url: url,
+						method: 'GET',
+						header: {
+							'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+							'Content-Type': 'application/json;charset=utf-8'
+						},
+						success: (res) => {
+							console.log(res)
+							if (res.data.statusCode !== 200) {
+								uni.hideLoading()
+								_this.message = res.data.message
+								_this.showError = true
+								setTimeout(() => {
+									_this.showError = false
+								}, 3000)
+								return
+							} else {
+								uni.hideLoading()
+								this.onClose1()
+								this.showMessage = true
+								setTimeout(() => {
+									this.showMessage = false
+								}, 3000)
+
+							}
+						},
+						fail: (err) => {
+							uni.hideLoading()
+							_this.showError = true
+							_this.message = '请求失败'
+							setTimeout(() => {
+								_this.showError = false
+							}, 3000)
+							console.log(err)
+						}
+					});
+
 				} else {
 					this.onClose1()
 				}
 
 
 			},
-			onClickConfirm() {
-				this.onCloseConfirm()
-				uni.navigateTo({
-					url: '/pages/returnToWMS/returnToWMS'
-				})
+			onClickConfirm(e) {
+				let _this = this
+
+				if (e.index === 1) {
+					uni.showLoading({
+						title: '正在确认'
+					})
+
+					let url = BaseApi + '/Assemble/Assemblefinished?Id=' + _this.Id;
+					console.log(url)
+					uni.request({
+						url: url,
+						method: 'GET',
+						header: {
+							'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+							'Content-Type': 'application/json;charset=utf-8'
+						},
+						success: (res) => {
+							console.log(res)
+							if (res.data.statusCode !== 200) {
+								uni.hideLoading()
+								_this.message = res.data.message
+								_this.showError = true
+								setTimeout(() => {
+									_this.showError = false
+								}, 3000)
+								return
+							} else {
+
+								_this.onCloseConfirm()
+								_this.getReturnData()
+
+								// this.showMessage = true
+								// uni.navigateTo({
+								// 	url: '/pages/returnToWMS/returnToWMS?id=' + _this.Id
+								// })
+								// setTimeout(() => {
+								// 	this.showMessage = false
+								// }, 3000)
+
+							}
+						},
+						fail: (err) => {
+							uni.hideLoading()
+							_this.showError = true
+							_this.message = '请求失败'
+							setTimeout(() => {
+								_this.showError = false
+							}, 3000)
+							console.log(err)
+						}
+					});
+					// this.onCloseConfirm()
+
+				} else {
+					this.onCloseConfirm()
+				}
+			},
+			getReturnData() {
+				let _this = this;
+				let url1 = BaseApi + '/Basedata/Listdata?Id=' + _this.Id;
+				let url2 = BaseApi + '/Basedata/Topdata?Id=' + _this.Id;
+				let request1 = new Promise((resolve, reject) => {
+					uni.request({
+						url: url1,
+						method: 'GET',
+						header: {
+							'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+							'Content-Type': 'application/json;charset=utf-8'
+						},
+						success: (res) => {
+							resolve(res);
+						},
+						fail: (err) => {
+							reject(err);
+						}
+					});
+				});
+
+				let request2 = new Promise((resolve, reject) => {
+					uni.request({
+						url: url2,
+						method: 'GET',
+						header: {
+							'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+							'Content-Type': 'application/json;charset=utf-8'
+						},
+						success: (res) => {
+							resolve(res);
+						},
+						fail: (err) => {
+							reject(err);
+						}
+					});
+				});
+
+				Promise.all([request1, request2]).then(([res1, res2]) => {
+					if (res1.data.statusCode !== 200) {
+						_this.message = res1.data.message
+						_this.showError = true
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						return
+					} else if (res2.data.statusCode !== 200) {
+						_this.message = res2.data.message
+						_this.showError = true
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						return
+					} else {
+						uni.hideLoading()
+						uni.navigateTo({
+							url: `/pages/returnToWMS/returnToWMS?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
+						})
+					}
+					// 在这里写你的逻辑
+				}).catch(err => {
+					this.showError = true
+					this.message = '请求失败'
+					setTimeout(() => {
+						_this.showError = false
+					}, 3000)
+					console.log(err)
+					// 处理请求失败的情况
+				});
 			},
 			onCloseConfirm() {
 				this.showFinishConfirm = false
@@ -266,6 +438,7 @@
 			initScan() {
 				console.log('---------------进入了扫描------------')
 				let _this = this;
+				this.showScan = false
 				main = plus.android.runtimeMainActivity(); //获取activity  
 				var IntentFilter = plus.android.importClass('android.content.IntentFilter');
 				filter = new IntentFilter();
@@ -281,7 +454,41 @@
 
 						console.log('codeStr:', codeStr);
 
-
+						let url = BaseApi + '/GetDetail?Mid=' + codeStr;
+						console.log(url)
+						uni.request({
+							url: url,
+							method: 'GET',
+							header: {
+								'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+								'Content-Type': 'application/json;charset=utf-8'
+							},
+							success: (res) => {
+								console.log(res)
+								if (res.data.statusCode !== 200) {
+									uni.hideLoading()
+									_this.message = res.data.message
+									_this.showError = true
+									setTimeout(() => {
+										_this.showError = false
+									}, 3000)
+									return
+								} else {
+									uni.hideLoading()
+									_this.showAssemblyQty = true
+									_this.materialInfo = res.data.data
+								}
+							},
+							fail: (err) => {
+								uni.hideLoading()
+								_this.showError = true
+								_this.message = '请求失败'
+								setTimeout(() => {
+									_this.showError = false
+								}, 3000)
+								console.log(err)
+							}
+						});
 						// scanDevice.stopScan(); // 停止扫描
 
 					}
@@ -290,7 +497,6 @@
 			scanAssembly() {
 				this.showScan = true
 				scanDevice.setOutScanMode(0); // 扫描模式=广播
-
 				scanDevice.startScan()
 				setTimeout(() => {
 					this.showScan = false
@@ -326,7 +532,7 @@
 							}, 3000)
 							return
 						} else {
-							_this.materialList = res.data.data
+							_this.materialList = res.data.data.data
 							uni.hideLoading()
 
 						}

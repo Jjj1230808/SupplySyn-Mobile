@@ -174,7 +174,8 @@
 						image: 'back-list',
 						router: ''
 					}, ]
-				}]
+				}],
+				currentRoute: ''
 			}
 		},
 		// onUnload() {
@@ -265,6 +266,8 @@
 			this.unregisterScan()
 		},
 		onShow() {
+			this.initScan(this.currentRoute)
+			this.registerScan()
 			scanDevice.setOutScanMode(0); // 扫描模式=广播
 		},
 		methods: {
@@ -297,12 +300,11 @@
 						uni.showLoading({
 							title: '正在查询'
 						})
-						console.log(BaseApi)
-						let url1 = BaseApi + '/Basedata/Listdata?Id=' + JSON.parse(codeStr).id;
-						let url2 = BaseApi + '/Basedata/Topdata?Id=' + JSON.parse(codeStr).id;
+
+						let url1 = BaseApi + '/Basedata/Listdata?Id=' + codeStr;
+						let url2 = BaseApi + '/Basedata/Topdata?Id=' + codeStr;
 						console.log(uni.getStorageSync("scToken"))
-						console.log(url1)
-						console.log(url2)
+
 						let request1 = new Promise((resolve, reject) => {
 							uni.request({
 								url: url1,
@@ -358,8 +360,11 @@
 								return
 							} else {
 								uni.hideLoading()
+								console.log(
+									`${_this.currentRoute}?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`
+								)
 								uni.navigateTo({
-									url: `/pages/startToAssembly/startToAssembly?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
+									url: `${_this.currentRoute}?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
 								})
 							}
 							// 在这里写你的逻辑
@@ -388,8 +393,7 @@
 			},
 			linkRequest(item) {
 				this.show1 = true
-				this.initScan(item.router)
-				this.registerScan()
+				this.currentRoute = item.router
 				scanDevice.startScan()
 				setTimeout(() => {
 					this.show1 = false
