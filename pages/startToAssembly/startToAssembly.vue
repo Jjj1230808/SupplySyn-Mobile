@@ -1,7 +1,8 @@
 <template>
 
 	<view>
-		<navbar style="position: fixed;left: 0;right: 0;top: 0;" title="开始装配" :isCanBack="true" text="ST03-80">
+		<navbar style="position: fixed;left: 0;right: 0;top: 0;" title="开始装配" :isCanBack="true"
+			:text="topData.stationNo">
 		</navbar>
 		<view class="search-input-container" v-if="isShowSearch" @click="isShowSearch= false">
 			<view class="search-area" @click.stop="">
@@ -15,14 +16,18 @@
 			</view>
 		</view>
 		<view class="search-bar">
-			<view class="visual-bar" @click="displaySearchBar">
+			<view class="visual-bar" @click="displaySearchBar" v-if="!materialCode">
 				<uni-icons type="search" color="#646464" size="20" style="margin-right: 6rpx;"></uni-icons>
 				请输入物料信息或扫码查询
 			</view>
+			<view class="visual-bar-fill" @click="displaySearchBar" v-if="materialCode">
+				<uni-icons type="search" color="#646464" size="20" style="margin-right: 6rpx;"></uni-icons>
+				{{materialCode}}
+			</view>
 			<view class="number-summarize">
-				<view>领料总数 <span style="color: #414546;">60</span></view>
-				<view>已用数量 <span style="color: #00893d;">40</span></view>
-				<view>剩余数量 <span style="color: #f2b704;">20</span></view>
+				<view>领料总数 <span style="color: #414546;">{{topData.totalQuantitys}}</span></view>
+				<view>已用数量 <span style="color: #00893d;">{{topData.quantityUseds}}</span></view>
+				<view>剩余数量 <span style="color: #f2b704;">{{topData.remainingQuantitys}}</span></view>
 			</view>
 		</view>
 		<scroll-view class="material-list">
@@ -47,29 +52,29 @@
 						</view>
 						<view>
 							<view>物料位置</view>
-							<view>{{item.workshopAreaName}}</view>
+							<view>{{item.workshopAreaName}}-{{item.materialCarNo}}-{{item.materialBoxNo}}</view>
 						</view>
 					</view>
 				</view>
 				<view class="material-qty">
 					<view>
 						<view>领料数量</view>
-						<view style="color: #414546">{{totalQuantity}}</view>
+						<view style="color: #414546">{{item.totalQuantity}}</view>
 						<span></span>
 					</view>
 					<view>
 						<view>装配数量</view>
-						<view style="color: #00893d;">{{quantityUsed}}</view>
+						<view style="color: #00893d;">{{item.quantityUsed}}</view>
 						<span></span>
 					</view>
 					<view>
 						<view>退库数量</view>
-						<view>{{returnQuantity}}</view>
+						<view>{{item.returnQuantity}}</view>
 						<span></span>
 					</view>
 					<view>
 						<view>报废数量</view>
-						<view>{{scrapQuantity}}</view>
+						<view>{{item.scrapQuantity}}</view>
 					</view>
 				</view>
 				<view class="material-action">
@@ -78,7 +83,7 @@
 							style="width: 28rpx;height: 28rpx;margin-right: 8rpx;" mode="">
 						</image>
 						<view style="margin-right: 8rpx;color: #646464;font-size: 24rpx;">待装配</view>
-						<view style="color: #F2B704;font-size: 24rpx;">{{remainingQuantity}}</view>
+						<view style="color: #F2B704;font-size: 24rpx;">{{item.remainingQuantity}}</view>
 					</view>
 				</view>
 			</view>
@@ -104,7 +109,8 @@
 		<view class="link-top" @click="linkToTop" v-if="!isShowSearch">
 
 		</view>
-		<scan-dialog :show="showScan" maskClosable>
+		<scan-dialog :show="showScan" :outWidth="420" :outHeight="280" :padding="50" :iconWidth="120" :iconHeight="120"
+			maskClosable>
 		</scan-dialog>
 		<assembly-qty-dialog :show="showAssemblyQty" :title="title" :buttons="buttons" maskClosable @click="onClick1"
 			@close="onClose1"></assembly-qty-dialog>
@@ -114,6 +120,9 @@
 		<fui-dialog :show="showFinishConfirm" title="确认完成装配" content="请确认该工位装配是否已完成？" :buttons="buttons" maskClosable
 			@click="onClickConfirm" @close="onCloseConfirm">
 		</fui-dialog>
+		<scan-dialog :show="showError" imgUrl="Error.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
+			:padding="76" :iconWidth="92" :text="message" maskClosable>
+		</scan-dialog>
 	</view>
 </template>
 
@@ -122,67 +131,67 @@
 		BaseApi
 	} from '../../kevinrong-http/baseApi.js'
 
-	// function utf8ByteToUnicodeStr(utf8Bytes) {
-	// 	var unicodeStr = "";
-	// 	for (var pos = 0; pos < utf8Bytes.length;) {
-	// 		var flag = utf8Bytes[pos];
-	// 		var unicode = 0;
-	// 		if ((flag >>> 7) === 0) {
-	// 			unicodeStr += String.fromCharCode(utf8Bytes[pos]);
-	// 			pos += 1;
+	function utf8ByteToUnicodeStr(utf8Bytes) {
+		var unicodeStr = "";
+		for (var pos = 0; pos < utf8Bytes.length;) {
+			var flag = utf8Bytes[pos];
+			var unicode = 0;
+			if ((flag >>> 7) === 0) {
+				unicodeStr += String.fromCharCode(utf8Bytes[pos]);
+				pos += 1;
 
-	// 		} else if ((flag & 0xFC) === 0xFC) {
-	// 			unicode = (utf8Bytes[pos] & 0x3) << 30;
-	// 			unicode |= (utf8Bytes[pos + 1] & 0x3F) << 24;
-	// 			unicode |= (utf8Bytes[pos + 2] & 0x3F) << 18;
-	// 			unicode |= (utf8Bytes[pos + 3] & 0x3F) << 12;
-	// 			unicode |= (utf8Bytes[pos + 4] & 0x3F) << 6;
-	// 			unicode |= (utf8Bytes[pos + 5] & 0x3F);
-	// 			unicodeStr += String.fromCodePoint(unicode);
-	// 			pos += 6;
+			} else if ((flag & 0xFC) === 0xFC) {
+				unicode = (utf8Bytes[pos] & 0x3) << 30;
+				unicode |= (utf8Bytes[pos + 1] & 0x3F) << 24;
+				unicode |= (utf8Bytes[pos + 2] & 0x3F) << 18;
+				unicode |= (utf8Bytes[pos + 3] & 0x3F) << 12;
+				unicode |= (utf8Bytes[pos + 4] & 0x3F) << 6;
+				unicode |= (utf8Bytes[pos + 5] & 0x3F);
+				unicodeStr += String.fromCodePoint(unicode);
+				pos += 6;
 
-	// 		} else if ((flag & 0xF8) === 0xF8) {
-	// 			unicode = (utf8Bytes[pos] & 0x7) << 24;
-	// 			unicode |= (utf8Bytes[pos + 1] & 0x3F) << 18;
-	// 			unicode |= (utf8Bytes[pos + 2] & 0x3F) << 12;
-	// 			unicode |= (utf8Bytes[pos + 3] & 0x3F) << 6;
-	// 			unicode |= (utf8Bytes[pos + 4] & 0x3F);
-	// 			unicodeStr += String.fromCodePoint(unicode);
-	// 			pos += 5;
+			} else if ((flag & 0xF8) === 0xF8) {
+				unicode = (utf8Bytes[pos] & 0x7) << 24;
+				unicode |= (utf8Bytes[pos + 1] & 0x3F) << 18;
+				unicode |= (utf8Bytes[pos + 2] & 0x3F) << 12;
+				unicode |= (utf8Bytes[pos + 3] & 0x3F) << 6;
+				unicode |= (utf8Bytes[pos + 4] & 0x3F);
+				unicodeStr += String.fromCodePoint(unicode);
+				pos += 5;
 
-	// 		} else if ((flag & 0xF0) === 0xF0) {
-	// 			unicode = (utf8Bytes[pos] & 0xF) << 18;
-	// 			unicode |= (utf8Bytes[pos + 1] & 0x3F) << 12;
-	// 			unicode |= (utf8Bytes[pos + 2] & 0x3F) << 6;
-	// 			unicode |= (utf8Bytes[pos + 3] & 0x3F);
-	// 			unicodeStr += String.fromCodePoint(unicode);
-	// 			pos += 4;
+			} else if ((flag & 0xF0) === 0xF0) {
+				unicode = (utf8Bytes[pos] & 0xF) << 18;
+				unicode |= (utf8Bytes[pos + 1] & 0x3F) << 12;
+				unicode |= (utf8Bytes[pos + 2] & 0x3F) << 6;
+				unicode |= (utf8Bytes[pos + 3] & 0x3F);
+				unicodeStr += String.fromCodePoint(unicode);
+				pos += 4;
 
-	// 		} else if ((flag & 0xE0) === 0xE0) {
-	// 			unicode = (utf8Bytes[pos] & 0x1F) << 12;;
-	// 			unicode |= (utf8Bytes[pos + 1] & 0x3F) << 6;
-	// 			unicode |= (utf8Bytes[pos + 2] & 0x3F);
-	// 			unicodeStr += String.fromCharCode(unicode);
-	// 			pos += 3;
+			} else if ((flag & 0xE0) === 0xE0) {
+				unicode = (utf8Bytes[pos] & 0x1F) << 12;;
+				unicode |= (utf8Bytes[pos + 1] & 0x3F) << 6;
+				unicode |= (utf8Bytes[pos + 2] & 0x3F);
+				unicodeStr += String.fromCharCode(unicode);
+				pos += 3;
 
-	// 		} else if ((flag & 0xC0) === 0xC0) { //110
-	// 			unicode = (utf8Bytes[pos] & 0x3F) << 6;
-	// 			unicode |= (utf8Bytes[pos + 1] & 0x3F);
-	// 			unicodeStr += String.fromCharCode(unicode);
-	// 			pos += 2;
+			} else if ((flag & 0xC0) === 0xC0) { //110
+				unicode = (utf8Bytes[pos] & 0x3F) << 6;
+				unicode |= (utf8Bytes[pos + 1] & 0x3F);
+				unicodeStr += String.fromCharCode(unicode);
+				pos += 2;
 
-	// 		} else {
-	// 			unicodeStr += String.fromCharCode(utf8Bytes[pos]);
-	// 			pos += 1;
-	// 		}
-	// 	}
-	// 	return unicodeStr;
-	// }
+			} else {
+				unicodeStr += String.fromCharCode(utf8Bytes[pos]);
+				pos += 1;
+			}
+		}
+		return unicodeStr;
+	}
 
-	// var main, receiver, filter;
-	// var ScanDeviceClass = plus.android.importClass("android.device.ScanDevice");
-	// var scanDevice;
-	// scanDevice = new ScanDeviceClass();
+	var main, receiver, filter;
+	var ScanDeviceClass = plus.android.importClass("android.device.ScanDevice");
+	var scanDevice;
+	scanDevice = new ScanDeviceClass();
 	export default {
 		data() {
 			return {
@@ -201,11 +210,22 @@
 				showMessage: false,
 				showFinishConfirm: false,
 				materialList: [],
-				Id: ''
+				topData: {},
+				Id: '',
+				showError: false,
+				message: ''
 			};
 		},
 		onLoad(options) {
-			console.log(this.$route.query)
+			this.Id = JSON.parse((options.ListData)).id;
+			this.materialList = JSON.parse((options.ListData)).data
+			this.topData = JSON.parse((options.topData))
+			console.log(JSON.parse((options.ListData)))
+			console.log(JSON.parse((options.topData)))
+		},
+		onShow() {
+			this.initScan()
+			this.registerScan()
 		},
 		watch: {
 
@@ -268,45 +288,74 @@
 				});
 			},
 			scanAssembly() {
-				this.showAssemblyQty = true
-				// this.showScan = true
-				// this.initScan()
-				// this.registerScan()
-				// scanDevice.startScan()
-				// setTimeout(() => {
-				// 	this.showScan = false
-				// }, 3000)
+				this.showScan = true
+				scanDevice.setOutScanMode(0); // 扫描模式=广播
+
+				scanDevice.startScan()
+				setTimeout(() => {
+					this.showScan = false
+				}, 3000)
 			},
 			finishAssembly() {
 				this.showFinishConfirm = true
 			},
 			enterMaterialCode(e) {
 				console.log(e)
+				let _this = this;
 				this.isShowSearch = false
 				uni.showLoading({
 					title: '正在搜索'
 				})
 				let url = BaseApi + '/Search?Id=' + this.Id + '&Info=' + e.detail.value;
+				console.log(url)
 				uni.request({
 					url: url,
 					method: 'GET',
 					header: {
-						'Authorization': uni.getStorageSync("token"),
+						'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
 						'Content-Type': 'application/json;charset=utf-8'
 					},
 					success: (res) => {
-						uni.hideLoading()
+						console.log(res)
+						if (res.data.statusCode !== 200) {
+							uni.hideLoading()
+							_this.message = res.data.message
+							_this.showError = true
+							setTimeout(() => {
+								_this.showError = false
+							}, 3000)
+							return
+						} else {
+							_this.materialList = res.data.data
+							uni.hideLoading()
+
+						}
 					},
 					fail: (err) => {
 						uni.hideLoading()
+						_this.showError = true
+						_this.message = '请求失败'
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						console.log(err)
 					}
 				});
 
 			},
 			closeSearch() {
+				this.materialCode = ''
 				this.isShowSearch = false
+				// this.enterMaterialCode({
+				// 	detail: {
+				// 		value: ''
+				// 	}
+				// })
 			},
 			displaySearchBar() {
+				scanDevice.setOutScanMode(1); // 扫描模式=广播
+
+				scanDevice.startScan()
 				this.isShowSearch = true
 
 			},
@@ -344,6 +393,20 @@
 		color: #9ca2a5;
 		font-size: 28rpx;
 		border-radius: 10rpx;
+	}
+
+	.visual-bar-fill {
+		width: 680rpx;
+		height: 70rpx;
+		justify-content: left;
+		display: flex;
+		align-items: center;
+		background-color: #f6f7f8;
+		margin: 20rpx auto;
+		color: #000;
+		font-size: 28rpx;
+		border-radius: 10rpx;
+		padding-left: 20rpx;
 	}
 
 	.number-summarize {

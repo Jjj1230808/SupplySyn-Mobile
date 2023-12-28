@@ -2,7 +2,7 @@
 	<view @tap="maskClose" :style="{background:maskBackground}" class="fui-dialog__wrap"
 		:class="{'fui-wrap__show':show}" @touchmove.stop.prevent="stop" v-if="visible || !isNvue" ref="fui_dialog_ani">
 		<view class="fui-dialog__inner"
-			:style="{background:background,borderRadius:radius+'rpx',width: outWidth+'rpx',height: outHeight+'rpx',padding:padding+'rpx'}"
+			:style="{background:background,borderRadius:radius+'rpx',width: outWidth+'rpx',height: outHeight+'rpx',paddingTop:padding+'rpx',paddingBottom:padding+'rpx'}"
 			@tap.stop="stop">
 			<image :style="{width: iconWidth+'rpx',height: iconHeight+'rpx'}" :src="'../../static/img/'+imgUrl" mode="">
 			</image>

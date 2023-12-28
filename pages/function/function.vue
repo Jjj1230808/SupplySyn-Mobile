@@ -233,6 +233,8 @@
 			scanDevice.setOutScanMode(0); // 扫描模式
 			// this.registerScan()
 			scanDevice.openScan()
+
+
 			// let tenantslist = tenants.tenants
 			// this.range = tenants.tenants.map((item) => {
 			// 	return {
@@ -257,10 +259,13 @@
 		},
 
 		onHide() {
+			console.log('onhide')
+			scanDevice.setOutScanMode(1); // 扫描模式=输入框
+			scanDevice.stopScan()
 			this.unregisterScan()
 		},
 		onShow() {
-
+			scanDevice.setOutScanMode(0); // 扫描模式=广播
 		},
 		methods: {
 			registerScan() {
@@ -288,17 +293,22 @@
 						console.log('codeStr:', codeStr);
 						// console.log(taskInfo);
 						// let taskId = taskInfo.RelatedId
-
+						_this.show1 = false
+						uni.showLoading({
+							title: '正在查询'
+						})
 						console.log(BaseApi)
-						let url1 = BaseApi + '/Basedata/Listdata?Id=' + JSON.parse(codeStr).Id;
-						let url2 = BaseApi + '/Basedata/Topdata?Id=' + JSON.parse(codeStr).Id;
-
+						let url1 = BaseApi + '/Basedata/Listdata?Id=' + JSON.parse(codeStr).id;
+						let url2 = BaseApi + '/Basedata/Topdata?Id=' + JSON.parse(codeStr).id;
+						console.log(uni.getStorageSync("scToken"))
+						console.log(url1)
+						console.log(url2)
 						let request1 = new Promise((resolve, reject) => {
 							uni.request({
 								url: url1,
 								method: 'GET',
 								header: {
-									'Authorization': uni.getStorageSync("token"),
+									'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
 									'Content-Type': 'application/json;charset=utf-8'
 								},
 								success: (res) => {
@@ -315,7 +325,7 @@
 								url: url2,
 								method: 'GET',
 								header: {
-									'Authorization': uni.getStorageSync("token"),
+									'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
 									'Content-Type': 'application/json;charset=utf-8'
 								},
 								success: (res) => {
@@ -330,11 +340,35 @@
 						Promise.all([request1, request2]).then(([res1, res2]) => {
 							console.log(res1);
 							console.log(res2)
-							if (res1.data.statusCode === 400) {
-								this.showError = true
+							if (res1.data.statusCode !== 200) {
+								uni.hideLoading()
+								_this.message = res1.data.message
+								_this.showError = true
+								setTimeout(() => {
+									_this.showError = false
+								}, 3000)
+								return
+							} else if (res2.data.statusCode !== 200) {
+								uni.hideLoading()
+								_this.message = res2.data.message
+								_this.showError = true
+								setTimeout(() => {
+									_this.showError = false
+								}, 3000)
+								return
+							} else {
+								uni.hideLoading()
+								uni.navigateTo({
+									url: `/pages/startToAssembly/startToAssembly?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
+								})
 							}
 							// 在这里写你的逻辑
 						}).catch(err => {
+							this.showError = true
+							this.message = '请求失败'
+							setTimeout(() => {
+								_this.showError = false
+							}, 3000)
 							console.log(err)
 							// 处理请求失败的情况
 						});
