@@ -15,7 +15,7 @@
 				</view>
 			</view>
 		</view>
-		<view class="search-bar">
+		<view v-if="!isShowSearch" class="search-bar">
 			<view class="visual-bar" @click="displaySearchBar" v-if="!materialCode">
 				<uni-icons type="search" color="#646464" size="20" style="margin-right: 6rpx;"></uni-icons>
 				请输入物料信息或扫码查询
@@ -198,7 +198,7 @@
 		color: #9ca2a5;
 		font-size: 28rpx;
 		border-radius: 10rpx;
-		z-index: 9999;
+		z-index: 2;
 	}
 
 	.visual-bar-fill {
@@ -213,7 +213,7 @@
 		font-size: 28rpx;
 		border-radius: 10rpx;
 		padding-left: 20rpx;
-		z-index: 9999;
+		z-index: 2;
 	}
 
 	.number-summarize {
@@ -276,7 +276,7 @@
 		left: 0;
 		bottom: 0;
 		background: rgba(0, 0, 0, 0.70);
-		z-index: 9999;
+		z-index: 2;
 		border-top: 1px solid #CED5DA;
 	}
 

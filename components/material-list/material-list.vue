@@ -1,5 +1,7 @@
 <template>
 	<view class="">
+		<image style="width: 200rpx;display: block;margin:200rpx auto;" v-if="materialList.length===0"
+			src="../../static/img/Not Found illustration.svg" mode=""></image>
 		<view class="material-item" v-for="(item,index) in materialList">
 			<view class="material-info">
 				<view class="material-type-regular" v-if="item.materialType===10">
@@ -89,8 +91,8 @@
 					<view style="margin-right: 8rpx;color: #646464;font-size: 24rpx;">退库</view>
 					<view style="color: #FF9800;font-size: 24rpx;">{{item.returnQuantity}}</view>
 				</view>
-				<view @click="reprintLabel" v-if="cardtitle === '物料退回' || cardtitle ==='退库' || cardtitle === '补打标签'  "
-					class="print-label">
+				<view @click="reprintLabel(item)"
+					v-if="cardtitle === '物料退回' || cardtitle ==='退库' || cardtitle === '补打标签'  " class="print-label">
 					<image src="../../static/img/print.svg" style="width: 28rpx;height: 28rpx;margin-right: 8rpx;"
 						mode="">
 					</image>
@@ -101,16 +103,37 @@
 				</view>
 			</view>
 		</view>
+
+		<scan-dialog :show="showMessage" imgUrl="success.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
+			:padding="76" :iconWidth="92" text="提交成功" maskClosable>
+		</scan-dialog>
+
+		<scan-dialog :show="showError" imgUrl="Error.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
+			:padding="76" :iconWidth="92" :text="message" maskClosable>
+		</scan-dialog>
 	</view>
 </template>
 
 <script>
+	import {
+		BaseApi
+	} from '../../kevinrong-http/baseApi.js'
+	const printer = uni.requireNativePlugin('LcPrinter');
+	const modal = uni.requireNativePlugin('modal');
+	var globalEvent = uni.requireNativePlugin('globalEvent');
 	export default {
+		data() {
+			return {
+				showMessage: false,
+				showError: false,
+				message: '',
+			};
+		},
 		emits: ['click', 'close'],
 		props: {
 			materialList: {
 				type: Array,
-				default: ''
+				default: []
 			},
 			cardtitle: {
 				type: String,
@@ -121,9 +144,254 @@
 			const materialList = this.materialList
 		},
 		methods: {
-			reprintLabel() {
+			printTask(item) {
+				console.log(item)
+				var ret = printer.initPrinter({});
+				console.log(ret);
+				if (ret.code == "success") {
+					uni.showLoading({
+						title: '正在打印...'
+					})
+				}
+				// modal.toast({
+				// 	message: ret,
+				// 	duration: 1.5
+				// });
+				let projectName = 'item.projectName'
+				let taskName = 'item.taskFullName'
+				let projectNo = 'item.projectCode'
+				let proExecutor = 'item.displayFullName'
+				let taskDate = 'item.planStartTime' + '-' + 'item.planEndTime'
+
+				printer.printEnableMark({
+					enable: true
+				})
+				printer.setLineSpacing({
+					spacing: 0.9
+				})
+				// printer.setFeedPaperSpace({
+				// 	space: 500
+				// })
+				// printer.setUnwindPaperLen({
+				// 	length: 100,
+				// })
+				// console.log('走纸距离', printer.getFeedPaperSpace());
+				// console.log('回纸距离', printer.getUnwindPaperLen());
+				// 生成二维码
+				printer.printQR2({
+					offset: 100,
+					height: 150,
+					text: `{"QRCodeType":0,"RelatedId":"${item.id}"}`
+				})
+				// 走纸
+
+				printer.setFontSize({
+					fontSize: 0
+				});
+				printer.setTextBold({
+					bold: true
+				});
+
+				printer.printText({
+					content: '项  目  号:'
+				});
+				printer.setTextBold({
+					bold: false
+				});
+				printer.setFontSize({
+					fontSize: 17
+				});
+				printer.printText({
+					content: projectNo + '\n'
+				});
+				// printer.printLine({
+				// 	line_length: 1
+				// })
+				// printer.printGoToNextMark()
+				printer.setTextBold({
+					bold: true
+				});
+
+				printer.printText({
+					content: '项目名称:'
+				});
+				printer.setTextBold({
+					bold: false
+				});
+				printer.printText({
+					content: projectName + '\n'
+				});
+				printer.setTextBold({
+					bold: true
+				});
+
+				printer.printText({
+					content: '负  责  人:'
+				});
+				printer.setTextBold({
+					bold: false
+				});
+				printer.printText({
+					content: proExecutor + '\n'
+				});
+				// printer.printLine({
+				// 	line_length: 1
+				// })
+				// printer.printGoToNextMark()
+				printer.setTextBold({
+					bold: true
+				});
+
+				printer.printText({
+					content: '工        期:'
+				});
+				printer.setTextBold({
+					bold: false
+				});
+				printer.printText({
+					content: taskDate + '\n'
+				});
+				// printer.printLine({
+				// 	line_length: 1
+				// })
+				// printer.printGoToNextMark()
+
+				printer.setTextBold({
+					bold: true
+				});
+
+				printer.printText({
+					content: '任务名称:'
+				});
+				printer.setTextBold({
+					bold: false
+				});
+				printer.printText({
+					content: taskName
+				});
+
+
+				printer.printGoToNextMark()
+				let _this = this
+
+				globalEvent.addEventListener('onPrintCallback', function(e) {
+					// uni.showToast({
+					// 	title: 'state: ' + JSON.stringify(e),
+					// 	duration: 2000
+					// });
+					uni.hideLoading()
+					console.log(e)
+					// 打印成功，调接口
+					if (e.key == 0) {
+						let url1 = _this.$Api.gateway +
+							`/app/kimi-print-record`
+						console.log(url1);
+						let data = {
+							relatedId: item.id,
+							description: item.taskFullName
+						}
+						uni.hideLoading()
+						uni.request({
+							url: url1,
+							method: "POST",
+							data: data,
+							header: {
+								'Authorization': "Bearer " + uni.getStorageSync("scToken")
+							},
+							success: (res) => {
+								if (res.data.succeeded) {
+									console.log(res);
+									uni.showToast({
+										title: '打印成功',
+										duration: 2000
+									});
+									// 实际调用接口成功了，但因为没有重新请求接口，
+									//所以在页面上演一下，下次刷新调用接口也会出现相同的打印标识
+									item.printCount = 1
+								} else {
+									uni.hideLoading()
+									uni.showToast({
+										title: '未知错误',
+										duration: 2000,
+										icon: 'error'
+									});
+								}
+							},
+							fail: (res) => {
+								uni.hideLoading()
+								console.log(res);
+								uni.showToast({
+									title: '打印记录未同步',
+									icon: 'error'
+								})
+							}
+
+
+						})
+
+
+					} else if (e.key == 3) {
+						uni.hideLoading()
+						uni.showToast({
+							title: '缺纸',
+							icon: 'error',
+							duration: 2000
+						});
+					}
+				});
+
+
+
+			},
+			reprintLabel(item) {
+				let _this = this;
+
+				uni.showLoading({
+					title: '正在打印'
+				})
+				let url = BaseApi + '/ReLabel/GetLabel?Mid=' + item.materialId
+				console.log(url)
+				uni.request({
+					url: url,
+					method: 'GET',
+					header: {
+						'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+						'Content-Type': 'application/json;charset=utf-8'
+					},
+					success: (res) => {
+						console.log(res)
+						if (res.data.statusCode !== 200) {
+							uni.hideLoading()
+							_this.message = res.data.message
+							_this.showError = true
+							setTimeout(() => {
+								_this.showError = false
+							}, 3000)
+							return
+						} else {
+							// uni.hideLoading()
+							// this.showMessage = true
+							// setTimeout(() => {
+							// 	this.showMessage = false
+							// }, 3000)
+							_this.printTask(res.data.data)
+
+						}
+					},
+					fail: (err) => {
+						uni.hideLoading()
+						_this.showError = true
+						_this.message = '请求失败'
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						console.log(err)
+					}
+				});
 				console.log('打印')
-				this.$emit('click', {})
+				this.$emit('click', {
+					id: id
+				})
 			},
 			returnMaterial(id) {
 				console.log(id)

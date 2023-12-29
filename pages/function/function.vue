@@ -300,17 +300,19 @@
 						uni.showLoading({
 							title: '正在查询'
 						})
+						console.log(_this.currentRoute)
 
-						let url1 = BaseApi + '/Basedata/Listdata?Id=' + codeStr;
-						let url2 = BaseApi + '/Basedata/Topdata?Id=' + codeStr;
 						console.log(uni.getStorageSync("scToken"))
 
 						let request1 = new Promise((resolve, reject) => {
 							uni.request({
-								url: url1,
+								url: _this.currentRoute !== '/pages/returnList/returnList' ?
+									BaseApi + '/Basedata/Listdata?Id=' + codeStr : BaseApi +
+									'/StockReturnDocument/getlistdaba?Id=' + codeStr,
 								method: 'GET',
 								header: {
-									'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+									'Authorization': 'Bearer ' + uni.getStorageSync(
+										"scToken"),
 									'Content-Type': 'application/json;charset=utf-8'
 								},
 								success: (res) => {
@@ -324,10 +326,13 @@
 
 						let request2 = new Promise((resolve, reject) => {
 							uni.request({
-								url: url2,
+								url: _this.currentRoute !== '/pages/returnList/returnList' ?
+									BaseApi + '/Basedata/Topdata?Id=' + codeStr : BaseApi +
+									'/StockReturnDocument/getstationNo?Id=' + codeStr,
 								method: 'GET',
 								header: {
-									'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+									'Authorization': 'Bearer ' + uni.getStorageSync(
+										"scToken"),
 									'Content-Type': 'application/json;charset=utf-8'
 								},
 								success: (res) => {
@@ -360,23 +365,26 @@
 								return
 							} else {
 								uni.hideLoading()
-								console.log(
-									`${_this.currentRoute}?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`
-								)
+								console.log(res2)
+								// console.log(
+								// 	`${_this.currentRoute}?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`
+								// )
 								uni.navigateTo({
 									url: `${_this.currentRoute}?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
 								})
 							}
 							// 在这里写你的逻辑
 						}).catch(err => {
-							this.showError = true
-							this.message = '请求失败'
+							_this.showError = true
+							_this.message = '请求失败'
 							setTimeout(() => {
 								_this.showError = false
 							}, 3000)
 							console.log(err)
 							// 处理请求失败的情况
 						});
+
+
 
 
 

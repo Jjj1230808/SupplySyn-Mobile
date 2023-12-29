@@ -1,8 +1,7 @@
 <template>
 
 	<view>
-		<navbar style="position: fixed;left: 0;right: 0;top: 0;" title="退库单" :isCanBack="true"
-			:text="topData.stationNo">
+		<navbar style="position: fixed;left: 0;right: 0;top: 0;" title="退库单" :isCanBack="true" :text="topData">
 		</navbar>
 		<view class="search-input-container" v-if="isShowSearch" @click="isShowSearch= false">
 			<view class="search-area" @click.stop="">
@@ -15,7 +14,7 @@
 				</view>
 			</view>
 		</view>
-		<view class="search-bar">
+		<view v-if="!isShowSearch" class="search-bar">
 			<view class="visual-bar" @click="displaySearchBar" v-if="!materialCode">
 				<uni-icons type="search" color="#646464" size="20" style="margin-right: 6rpx;"></uni-icons>
 				请输入物料信息或扫码查询
@@ -79,19 +78,19 @@
 				showMessage: false,
 				showFinishConfirm: false,
 				materialList: [],
-				topData: {},
+				topData: "",
 				Id: '',
 				showError: false,
 				message: '',
-				materialInfo: {}
+				materialInfo: {},
+
 			};
 		},
 		onLoad(options) {
-			console.log(JSON.parse((options.ListData)))
+			console.log(JSON.parse(options.topData))
 			this.Id = JSON.parse((options.ListData)).id;
 			this.materialList = JSON.parse((options.ListData)).data
-			this.topData = JSON.parse((options.topData))
-
+			this.topData = JSON.parse(options.topData)
 		},
 		onHide() {
 			console.log('onhide')
@@ -112,7 +111,7 @@
 				uni.showLoading({
 					title: '正在搜索'
 				})
-				let url = BaseApi + '/Search?Id=' + this.Id + '&Info=' + e.detail.value;
+				let url = BaseApi + '/StockReturnDocument/Search?Id=' + this.Id + '&Info=' + e.detail.value;
 				console.log(url)
 				uni.request({
 					url: url,
@@ -172,7 +171,7 @@
 
 <style lang="scss">
 	.search-bar {
-		height: 170rpx;
+		height: 110rpx;
 		position: fixed;
 		top: 108rpx;
 		left: 0;
@@ -193,7 +192,7 @@
 		color: #9ca2a5;
 		font-size: 28rpx;
 		border-radius: 10rpx;
-		z-index: 9999;
+		z-index: 2;
 	}
 
 	.visual-bar-fill {
@@ -208,7 +207,7 @@
 		font-size: 28rpx;
 		border-radius: 10rpx;
 		padding-left: 20rpx;
-		z-index: 9999;
+		z-index: 2;
 	}
 
 	.number-summarize {
@@ -244,7 +243,7 @@
 		position: absolute;
 		left: 0;
 		right: 0;
-		top: 276rpx;
+		top: 216rpx;
 		padding-top: 20rpx;
 		overflow: auto;
 		// z-index: -1;
@@ -272,7 +271,7 @@
 		left: 0;
 		bottom: 0;
 		background: rgba(0, 0, 0, 0.70);
-		z-index: 9999;
+		z-index: 2;
 		border-top: 1px solid #CED5DA;
 	}
 

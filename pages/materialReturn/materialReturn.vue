@@ -15,7 +15,7 @@
 				</view>
 			</view>
 		</view>
-		<view class="search-bar">
+		<view v-if="!isShowSearch" class="search-bar">
 			<view class="visual-bar" @click="displaySearchBar" v-if="!materialCode">
 				<uni-icons type="search" color="#646464" size="20" style="margin-right: 6rpx;"></uni-icons>
 				请输入物料信息或扫码查询
@@ -147,6 +147,10 @@
 									this.showMessage = false
 								}, 3000)
 
+								uni.navigateTo({
+									url: "/pages/function/function"
+								})
+
 							}
 						},
 						fail: (err) => {
@@ -171,7 +175,9 @@
 					title: '正在查询'
 				})
 				let _this = this;
-				let url = BaseApi + '/GetDetail?Mid=' + JSON.stringify();
+				let url = BaseApi + '/GetDetail?Mid=' + JSON.stringify({
+					'Id': e.id
+				});
 				console.log(url)
 				uni.request({
 					url: url,

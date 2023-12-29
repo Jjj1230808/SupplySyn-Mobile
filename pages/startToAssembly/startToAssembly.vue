@@ -15,7 +15,7 @@
 				</view>
 			</view>
 		</view>
-		<view class="search-bar">
+		<view v-if="!isShowSearch" class="search-bar">
 			<view class="visual-bar" @click="displaySearchBar" v-if="!materialCode">
 				<uni-icons type="search" color="#646464" size="20" style="margin-right: 6rpx;"></uni-icons>
 				请输入物料信息或扫码查询
@@ -34,7 +34,7 @@
 			<material-list :materialList="materialList" cardtitle="开始装配"></material-list>
 		</scroll-view>
 		<view class="action-buttons" v-if="!isShowSearch">
-			<button>
+			<button @click="returnMaterial">
 				<image style="width: 36rpx;height: 36rpx;" src="../../static/img/assignment_return.svg">
 				</image>
 				物料退回
@@ -63,6 +63,9 @@
 		</scan-dialog>
 		<fui-dialog :show="showFinishConfirm" title="确认完成装配" content="请确认该工位装配是否已完成？" :buttons="buttons" maskClosable
 			@click="onClickConfirm" @close="onCloseConfirm">
+		</fui-dialog>
+		<fui-dialog :show="showReturnConfirm" title="物料退回" content="是否发起物料退回？" :buttons="buttons" maskClosable
+			@click="onClickReturnConfirm" @close="onCloseReturnConfirm">
 		</fui-dialog>
 		<scan-dialog :show="showError" imgUrl="Error.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
 			:padding="76" :iconWidth="92" :text="message" maskClosable>
@@ -139,6 +142,8 @@
 	export default {
 		data() {
 			return {
+				showReturnConfirm: false,
+
 				isShowSearch: false,
 				materialCode: '',
 				showScan: false,
@@ -446,6 +451,99 @@
 			},
 			finishAssembly() {
 				this.showFinishConfirm = true
+			},
+			returnMaterial() {
+				this.showReturnConfirm = true
+			},
+			onCloseReturnConfirm() {
+				this.showReturnConfirm = false
+			},
+			onClickReturnConfirm(e) {
+				if (e.index === 1) {
+
+
+					this.showReturnConfirm = false
+					let _this = this
+					uni.showLoading({
+						title: '正在查询'
+					})
+
+					let url1 = BaseApi + '/Basedata/Listdata?Id=' + this.Id
+					let url2 = BaseApi + '/Basedata/Topdata?Id=' + this.Id
+					console.log(uni.getStorageSync("scToken"))
+
+					let request1 = new Promise((resolve, reject) => {
+						uni.request({
+							url: url1,
+							method: 'GET',
+							header: {
+								'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+								'Content-Type': 'application/json;charset=utf-8'
+							},
+							success: (res) => {
+								resolve(res);
+							},
+							fail: (err) => {
+								reject(err);
+							}
+						});
+					});
+
+					let request2 = new Promise((resolve, reject) => {
+						uni.request({
+							url: url2,
+							method: 'GET',
+							header: {
+								'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+								'Content-Type': 'application/json;charset=utf-8'
+							},
+							success: (res) => {
+								resolve(res);
+							},
+							fail: (err) => {
+								reject(err);
+							}
+						});
+					});
+
+					Promise.all([request1, request2]).then(([res1, res2]) => {
+						console.log(res1);
+						console.log(res2)
+						if (res1.data.statusCode !== 200) {
+							uni.hideLoading()
+							_this.message = res1.data.message
+							_this.showError = true
+							setTimeout(() => {
+								_this.showError = false
+							}, 3000)
+							return
+						} else if (res2.data.statusCode !== 200) {
+							uni.hideLoading()
+							_this.message = res2.data.message
+							_this.showError = true
+							setTimeout(() => {
+								_this.showError = false
+							}, 3000)
+							return
+						} else {
+							uni.hideLoading()
+							uni.navigateTo({
+								url: `/pages/materialReturn/materialReturn?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
+							})
+						}
+						// 在这里写你的逻辑
+					}).catch(err => {
+						this.showError = true
+						this.message = '请求失败'
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						console.log(err)
+						// 处理请求失败的情况
+					});
+				} else {
+					this.showReturnConfirm = false
+				}
 			},
 			enterMaterialCode(e) {
 				console.log(e)
