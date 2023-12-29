@@ -31,7 +31,8 @@
 			</view>
 		</view>
 		<scroll-view class="material-list">
-			<material-list :materialList="materialList" cardtitle="补打标签"></material-list>
+			<material-list :materialList="materialList" cardtitle="物料退回" @returnMaterial="returnMaterial">
+			</material-list>
 
 
 		</scroll-view>
@@ -50,6 +51,8 @@
 		<scan-dialog :show="showError" imgUrl="Error.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
 			:padding="76" :iconWidth="92" :text="message" maskClosable>
 		</scan-dialog>
+		<assembly-qty-dialog :show="showAssemblyQty" :title="title" :buttons="buttons" maskClosable @click="onClick1"
+			numText="本次退回数量" @close="onClose1" :materialInfo="materialInfo"></assembly-qty-dialog>
 	</view>
 </template>
 
@@ -68,7 +71,7 @@
 				materialCode: '',
 				showScan: false,
 				showAssemblyQty: false,
-				title: '选择装配数量',
+				title: '物料退回',
 				buttons: [{
 					text: '取消',
 					color: '#646464'
@@ -105,6 +108,106 @@
 
 		},
 		methods: {
+			onClose1(e) {
+				this.showAssemblyQty = false
+			},
+			onClick1(e) {
+				console.log(e)
+				let _this = this
+
+				if (e.index === 1) {
+					uni.showLoading({
+						title: '正在确认'
+					})
+					let url = BaseApi + '/Materialreturn/SendreturnNumber?Mid=' + _this.materialInfo.materialId +
+						'&quantityUsed=' + e.currentNum;
+					console.log(url)
+					uni.request({
+						url: url,
+						method: 'GET',
+						header: {
+							'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+							'Content-Type': 'application/json;charset=utf-8'
+						},
+						success: (res) => {
+							console.log(res)
+							if (res.data.statusCode !== 200) {
+								uni.hideLoading()
+								_this.message = res.data.message
+								_this.showError = true
+								setTimeout(() => {
+									_this.showError = false
+								}, 3000)
+								return
+							} else {
+								uni.hideLoading()
+								this.onClose1()
+								this.showMessage = true
+								setTimeout(() => {
+									this.showMessage = false
+								}, 3000)
+
+							}
+						},
+						fail: (err) => {
+							uni.hideLoading()
+							_this.showError = true
+							_this.message = '请求失败'
+							setTimeout(() => {
+								_this.showError = false
+							}, 3000)
+							console.log(err)
+						}
+					});
+
+				} else {
+					this.onClose1()
+				}
+
+
+			},
+			returnMaterial(e) {
+				uni.showLoading({
+					title: '正在查询'
+				})
+				let _this = this;
+				let url = BaseApi + '/GetDetail?Mid=' + JSON.stringify();
+				console.log(url)
+				uni.request({
+					url: url,
+					method: 'GET',
+					header: {
+						'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+						'Content-Type': 'application/json;charset=utf-8'
+					},
+					success: (res) => {
+						console.log(res)
+						if (res.data.statusCode !== 200) {
+							uni.hideLoading()
+							_this.message = res.data.message
+							_this.showError = true
+							setTimeout(() => {
+								_this.showError = false
+							}, 3000)
+							return
+						} else {
+							uni.hideLoading()
+							console.log(res.data.data)
+							_this.showAssemblyQty = true
+							_this.materialInfo = res.data.data
+						}
+					},
+					fail: (err) => {
+						uni.hideLoading()
+						_this.showError = true
+						_this.message = '请求失败'
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						console.log(err)
+					}
+				});
+			},
 			enterMaterialCode(e) {
 				console.log(e)
 				let _this = this;
@@ -179,7 +282,7 @@
 		right: 0;
 		background-color: #fff;
 		border-top: 1rpx solid #ced5da;
-
+		z-index: 9999;
 	}
 
 	.visual-bar {
@@ -193,6 +296,7 @@
 		color: #9ca2a5;
 		font-size: 28rpx;
 		border-radius: 10rpx;
+		z-index: 2;
 	}
 
 	.visual-bar-fill {
@@ -207,6 +311,7 @@
 		font-size: 28rpx;
 		border-radius: 10rpx;
 		padding-left: 20rpx;
+		z-index: 2;
 	}
 
 	.number-summarize {
@@ -245,7 +350,6 @@
 		top: 276rpx;
 		padding-top: 20rpx;
 		overflow: auto;
-		z-index: -1;
 	}
 
 
@@ -270,7 +374,7 @@
 		left: 0;
 		bottom: 0;
 		background: rgba(0, 0, 0, 0.70);
-		z-index: 9999;
+		z-index: 2;
 		border-top: 1px solid #CED5DA;
 	}
 

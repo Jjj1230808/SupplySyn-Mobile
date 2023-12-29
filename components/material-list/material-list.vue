@@ -96,7 +96,7 @@
 					</image>
 					<view style="margin-right: 8rpx;color: #00893d;font-size: 24rpx;">补打标签</view>
 				</view>
-				<view v-if="['物料退回'].includes(cardtitle)" class="back">
+				<view @click="returnMaterial(item.materialId)" v-if="['物料退回'].includes(cardtitle)" class="back">
 					<view style="color: #fff;font-size: 24rpx;">退回</view>
 				</view>
 			</view>
@@ -124,13 +124,19 @@
 			reprintLabel() {
 				console.log('打印')
 				this.$emit('click', {})
+			},
+			returnMaterial(id) {
+				console.log(id)
+				this.$emit('returnMaterial', {
+					id: id
+				})
 			}
 		}
 	}
 </script>
 
 <style>
-	.material-list {
+	/* 	.material-list {
 		position: absolute;
 		left: 0;
 		right: 0;
@@ -138,8 +144,8 @@
 		padding-top: 20rpx;
 		overflow: auto;
 		padding-bottom: 130rpx;
-		z-index: 9999 !important;
-	}
+		/* z-index: 9999 !important; */
+	/* } */
 
 	.material-item {
 		height: 350rpx;

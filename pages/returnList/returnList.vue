@@ -24,11 +24,11 @@
 				<uni-icons type="search" color="#646464" size="20" style="margin-right: 6rpx;"></uni-icons>
 				{{materialCode}}
 			</view>
-			<view class="number-summarize">
+			<!-- <view class="number-summarize">
 				<view>领料总数 <span style="color: #414546;">{{topData.totalQuantitys}}</span></view>
 				<view>已用数量 <span style="color: #00893d;">{{topData.quantityUseds}}</span></view>
 				<view>剩余数量 <span style="color: #f2b704;">{{topData.remainingQuantitys}}</span></view>
-			</view>
+			</view> -->
 		</view>
 		<scroll-view class="material-list">
 			<material-list :materialList="materialList" cardtitle="退库单"></material-list>
@@ -179,7 +179,7 @@
 		right: 0;
 		background-color: #fff;
 		border-top: 1rpx solid #ced5da;
-
+		z-index: 9999;
 	}
 
 	.visual-bar {
@@ -193,6 +193,7 @@
 		color: #9ca2a5;
 		font-size: 28rpx;
 		border-radius: 10rpx;
+		z-index: 9999;
 	}
 
 	.visual-bar-fill {
@@ -207,6 +208,7 @@
 		font-size: 28rpx;
 		border-radius: 10rpx;
 		padding-left: 20rpx;
+		z-index: 9999;
 	}
 
 	.number-summarize {
@@ -245,7 +247,7 @@
 		top: 276rpx;
 		padding-top: 20rpx;
 		overflow: auto;
-		z-index: -1;
+		// z-index: -1;
 	}
 
 

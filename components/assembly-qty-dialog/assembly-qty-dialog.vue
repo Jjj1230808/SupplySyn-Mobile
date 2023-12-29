@@ -3,7 +3,7 @@
 		:class="{'fui-wrap__show':show}" @touchmove.stop.prevent="stop" v-if="visible || !isNvue" ref="fui_dialog_ani">
 		<view class="fui-dialog__inner" :style="{background:background,borderRadius:radius+'rpx'}" @tap.stop="stop">
 			<text class="fui-dialog__title" :style="{color:color}" v-if="title">{{title}}</text>
-			<view class="dialog_header">
+			<view class="dialog_header" v-if="title!=='物料退回'">
 				<image src="../../static/img/watch_later.svg" style="width: 28rpx;height: 28rpx;margin-right: 8rpx;"
 					mode="">
 				</image>
@@ -203,7 +203,7 @@
 <style>
 	.fui-dialog__wrap {
 		position: fixed;
-		z-index: 1000;
+		z-index: 9999;
 		top: 0;
 		right: 0;
 		left: 0;
@@ -255,6 +255,7 @@
 		display: flex;
 		align-items: center;
 		margin-left: 30rpx;
+		margin-top: 8rpx;
 	}
 
 	.material-text>view:nth-child(1) {
