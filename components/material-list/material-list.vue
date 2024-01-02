@@ -121,12 +121,16 @@
 	const printer = uni.requireNativePlugin('LcPrinter');
 	const modal = uni.requireNativePlugin('modal');
 	var globalEvent = uni.requireNativePlugin('globalEvent');
+	import dateFormat, {
+		masks
+	} from "dateformat";
 	export default {
 		data() {
 			return {
 				showMessage: false,
 				showError: false,
 				message: '',
+				packageNo: ''
 			};
 		},
 		emits: ['click', 'close'],
@@ -140,205 +144,298 @@
 				default: ''
 			}
 		},
+		onLoad() {
+			this.userName = uni.getStorageSync('userName')
+			this.user = uni.getStorageSync('user')
+			globalEvent.addEventListener('onPrintCallback', function(e) {
+				console.log(e)
+				uni.hideLoading()
+				if (e.key == 0) {
+
+				} else if (e.key == 3) {
+					uni.showToast({
+						title: '缺纸',
+						icon: 'error'
+					})
+				}
+			})
+		},
 		mounted() {
 			const materialList = this.materialList
 		},
 		methods: {
-			printTask(item) {
+			printBagItem(item) {
 				console.log(item)
-				var ret = printer.initPrinter({});
-				console.log(ret);
-				if (ret.code == "success") {
-					uni.showLoading({
-						title: '正在打印...'
-					})
-				}
-				// modal.toast({
-				// 	message: ret,
-				// 	duration: 1.5
-				// });
-				let projectName = 'item.projectName'
-				let taskName = 'item.taskFullName'
-				let projectNo = 'item.projectCode'
-				let proExecutor = 'item.displayFullName'
-				let taskDate = 'item.planStartTime' + '-' + 'item.planEndTime'
+				// if (item.size == 0) {
+				// 	item.sizeName = '小料'
+				// } else if (item.size == 1) {
+				// 	item.sizeName = '中料'
+				// } else if (item.size == 2) {
+				// 	item.sizeName = '大料'
+				// }
+				let _this = this
+				var date = new Date();
+				var newdate = dateFormat(date, "yyyy-mm-dd HH:MM:ss");
+				var user = this.user
 
-				printer.printEnableMark({
-					enable: true
-				})
-				printer.setLineSpacing({
-					spacing: 0.9
-				})
-				// printer.setFeedPaperSpace({
-				// 	space: 500
+
+
+				var ret = printer.initPrinter({});
+
+
+
+				// printer.printEnableMark({
+				// 	enable: true
 				// })
-				// printer.setUnwindPaperLen({
-				// 	length: 100,
+				// printer.setLineSpacing({
+				// 	spacing: 0.9
 				// })
-				// console.log('走纸距离', printer.getFeedPaperSpace());
-				// console.log('回纸距离', printer.getUnwindPaperLen());
-				// 生成二维码
+				printer.setFontSize({
+					fontSize: 3
+				});
+
+				// let iteminfo = JSON.stringify(item)
+				// if (item.isUrgent == true && item.isSupplement) {
+				// 	printer.printText2({
+				// 		offset: 5,
+				// 		fontSize: 4,
+				// 		isBold: true,
+				// 		isUnderLine: false,
+				// 		content: `  后到料       *加急    ${item.sizeName}`
+				// 	});
+				// } else if (item.isUrgent == true && item.pickNum == 0) {
+				// 	printer.printText2({
+				// 		offset: 5,
+				// 		fontSize: 4,
+				// 		isBold: true,
+				// 		isUnderLine: false,
+				// 		content: `       *加急    ${item.sizeName}`
+				// 	});
+				// } else if (item.isUrgent == false && item.isSupplement) {
+				// 	printer.printText2({
+				// 		offset: 5,
+				// 		fontSize: 4,
+				// 		isBold: true,
+				// 		isUnderLine: false,
+				// 		content: `      后到料    ${item.sizeName}`
+				// 	});
+				// } else {
+				// 	printer.printText2({
+				// 		offset: 5,
+				// 		fontSize: 4,
+				// 		isBold: true,
+				// 		isUnderLine: false,
+				// 		content: `         ${item.sizeName}`
+				// 	});
+				// }
+				// printer.printDashLine()
 				printer.printQR2({
 					offset: 100,
 					height: 150,
-					text: `{"QRCodeType":0,"RelatedId":"${item.id}"}`
+					text: `{"Id":"${item.materialId}"}`
 				})
 				// 走纸
-
-				printer.setFontSize({
-					fontSize: 0
-				});
-				printer.setTextBold({
-					bold: true
-				});
-
-				printer.printText({
-					content: '项  目  号:'
-				});
-				printer.setTextBold({
-					bold: false
-				});
-				printer.setFontSize({
-					fontSize: 17
-				});
-				printer.printText({
-					content: projectNo + '\n'
-				});
-				// printer.printLine({
-				// 	line_length: 1
-				// })
-				// printer.printGoToNextMark()
-				printer.setTextBold({
-					bold: true
+				// printer.printText({
+				// 	content: 'PO/Item       '
+				// });
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: false,
+					isUnderLine: false,
+					content: 'PO/Item       '
 				});
 
-				printer.printText({
-					content: '项目名称:'
+				// printer.setFontSize({
+				// 	fontSize: 17
+				// });
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: true,
+					isUnderLine: false,
+					content: `${item.poItem}` + '\n'
 				});
-				printer.setTextBold({
-					bold: false
+				// printer.printText({
+				// 	content: 'Qty                '
+				// });
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: false,
+					isUnderLine: false,
+					content: 'Qty                '
 				});
-				printer.printText({
-					content: projectName + '\n'
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: true,
+					isUnderLine: false,
+					content: `${item.totalQuantity}` + '\n'
 				});
-				printer.setTextBold({
-					bold: true
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: false,
+					isUnderLine: false,
+					content: 'Material        '
 				});
-
-				printer.printText({
-					content: '负  责  人:'
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: true,
+					isUnderLine: false,
+					content: `${item.materialNo}` + '\n'
 				});
-				printer.setTextBold({
-					bold: false
-				});
-				printer.printText({
-					content: proExecutor + '\n'
-				});
-				// printer.printLine({
-				// 	line_length: 1
-				// })
-				// printer.printGoToNextMark()
-				printer.setTextBold({
-					bold: true
-				});
-
-				printer.printText({
-					content: '工        期:'
-				});
-				printer.setTextBold({
-					bold: false
-				});
-				printer.printText({
-					content: taskDate + '\n'
-				});
-				// printer.printLine({
-				// 	line_length: 1
-				// })
-				// printer.printGoToNextMark()
-
-				printer.setTextBold({
-					bold: true
-				});
-
-				printer.printText({
-					content: '任务名称:'
-				});
-				printer.setTextBold({
-					bold: false
-				});
-				printer.printText({
-					content: taskName
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: false,
+					isUnderLine: false,
+					content: 'Description  '
 				});
 
 
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: true,
+					isUnderLine: false,
+					content: `${item.description}` + '\n'
+				});
+
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: false,
+					isUnderLine: false,
+					content: 'WBS              '
+				});
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: true,
+					isUnderLine: false,
+					content: `${item.wbs}` + '\n'
+				});
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: false,
+					isUnderLine: false,
+					content: 'Station          '
+				});
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: true,
+					isUnderLine: false,
+					content: `${item.stationNo}` + '\n'
+				});
+
+				// printer.printText2({
+				// 	offset: 0,
+				// 	fontSize: 3,
+				// 	isBold: false,
+				// 	isUnderLine: false,
+				// 	content: 'Location      '
+				// });
+				// printer.printText2({
+				// 	offset: 0,
+				// 	fontSize: 3,
+				// 	isBold: true,
+				// 	isUnderLine: true,
+				// 	content: `${item.frameNo}\n`
+				// });
+
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: false,
+					isUnderLine: false,
+					content: 'BOM NO.     '
+
+				});
+
+
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: true,
+					isUnderLine: false,
+					content: `${item.bomno}` + '\n'
+				});
+
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: false,
+					isUnderLine: false,
+					content: 'Bom Item     '
+				});
+
+
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: true,
+					isUnderLine: false,
+					content: `${item.bomItem}` + '\n'
+				});
+
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: false,
+					isUnderLine: false,
+					content: 'Comment     '
+				});
+
+
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: true,
+					isUnderLine: false,
+					content: `${item.comment}` + '\n'
+				});
+
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: false,
+					isUnderLine: false,
+					content: 'Packed By    '
+				});
+
+
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: true,
+					isUnderLine: false,
+					content: `${item.packedBy}` + '\n'
+				});
+
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: false,
+					isUnderLine: false,
+					content: 'Assembler   '
+				});
+
+
+				printer.printText2({
+					offset: 0,
+					fontSize: 3,
+					isBold: true,
+					isUnderLine: false,
+					content: `${item.assembler}` + '\n'
+				});
+
+				_this.isCanRequest = true
 				printer.printGoToNextMark()
-				let _this = this
-
-				globalEvent.addEventListener('onPrintCallback', function(e) {
-					// uni.showToast({
-					// 	title: 'state: ' + JSON.stringify(e),
-					// 	duration: 2000
-					// });
-					uni.hideLoading()
-					console.log(e)
-					// 打印成功，调接口
-					if (e.key == 0) {
-						let url1 = _this.$Api.gateway +
-							`/app/kimi-print-record`
-						console.log(url1);
-						let data = {
-							relatedId: item.id,
-							description: item.taskFullName
-						}
-						uni.hideLoading()
-						uni.request({
-							url: url1,
-							method: "POST",
-							data: data,
-							header: {
-								'Authorization': "Bearer " + uni.getStorageSync("scToken")
-							},
-							success: (res) => {
-								if (res.data.succeeded) {
-									console.log(res);
-									uni.showToast({
-										title: '打印成功',
-										duration: 2000
-									});
-									// 实际调用接口成功了，但因为没有重新请求接口，
-									//所以在页面上演一下，下次刷新调用接口也会出现相同的打印标识
-									item.printCount = 1
-								} else {
-									uni.hideLoading()
-									uni.showToast({
-										title: '未知错误',
-										duration: 2000,
-										icon: 'error'
-									});
-								}
-							},
-							fail: (res) => {
-								uni.hideLoading()
-								console.log(res);
-								uni.showToast({
-									title: '打印记录未同步',
-									icon: 'error'
-								})
-							}
-
-
-						})
-
-
-					} else if (e.key == 3) {
-						uni.hideLoading()
-						uni.showToast({
-							title: '缺纸',
-							icon: 'error',
-							duration: 2000
-						});
-					}
-				});
 
 
 
@@ -369,12 +466,11 @@
 							}, 3000)
 							return
 						} else {
-							// uni.hideLoading()
-							// this.showMessage = true
-							// setTimeout(() => {
-							// 	this.showMessage = false
-							// }, 3000)
-							_this.printTask(res.data.data)
+
+							setTimeout(() => {
+								uni.hideLoading()
+							}, 3000)
+							_this.printBagItem(res.data.data)
 
 						}
 					},
@@ -390,7 +486,7 @@
 				});
 				console.log('打印')
 				this.$emit('click', {
-					id: id
+					id: item.materialId
 				})
 			},
 			returnMaterial(id) {
