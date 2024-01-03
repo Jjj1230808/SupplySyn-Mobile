@@ -29,7 +29,7 @@
 			}
 		},
 		created() {
-
+this.num = 1
 		},
 
 
@@ -59,7 +59,6 @@
 		},
 
 		props: {
-
 			title: {
 				type: String,
 				default: ""

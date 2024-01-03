@@ -1,5 +1,5 @@
 <template>
-	<view @tap="maskClose" :style="{background:maskBackground}" class="fui-dialog__wrap"
+	<view @tap="maskClose" style="z-index: 9999;" :style="{background:maskBackground}" class="fui-dialog__wrap"
 		:class="{'fui-wrap__show':show}" @touchmove.stop.prevent="stop" v-if="visible || !isNvue" ref="fui_dialog_ani">
 		<view class="fui-dialog__inner"
 			:style="{background:background,borderRadius:radius+'rpx',width: outWidth+'rpx',height: outHeight+'rpx',paddingTop:padding+'rpx',paddingBottom:padding+'rpx'}"

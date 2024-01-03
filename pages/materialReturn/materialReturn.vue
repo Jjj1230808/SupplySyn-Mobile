@@ -51,7 +51,7 @@
 		<scan-dialog :show="showError" imgUrl="Error.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
 			:padding="76" :iconWidth="92" :text="message" maskClosable>
 		</scan-dialog>
-		<assembly-qty-dialog :show="showAssemblyQty" :title="title" :buttons="buttons" maskClosable @click="onClick1"
+		<assembly-qty-dialog v-if="showAssemblyQty" :show="showAssemblyQty" :title="title" :buttons="buttons" maskClosable @click="onClick1"
 			numText="本次退回数量" @close="onClose1" :materialInfo="materialInfo"></assembly-qty-dialog>
 	</view>
 </template>
@@ -175,6 +175,7 @@
 					title: '正在查询'
 				})
 				let _this = this;
+				console.log(e.id)
 				let url = BaseApi + '/GetDetail?Mid=' + JSON.stringify({
 					'Id': e.id
 				});

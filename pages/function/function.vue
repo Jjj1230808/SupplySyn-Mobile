@@ -175,7 +175,7 @@
 						router: '/pages/returnList/returnList'
 					}, ]
 				}],
-				currentRoute: '/pages/returnList/returnList'
+				currentRoute: null
 			}
 		},
 		// onUnload() {
@@ -405,6 +405,7 @@
 				scanDevice.startScan()
 				setTimeout(() => {
 					this.show1 = false
+					this.currentRoute=null
 				}, 3000)
 			},
 			// back() {

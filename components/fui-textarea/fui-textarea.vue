@@ -1,5 +1,5 @@
 <template>
-	<view :class="{'fui-textarea__border':textareaBorder}" :style="{marginTop:marginTop+'rpx',borderColor:borderColor}"
+	<view :class="{'fui-textarea__border':textareaBorder}" style="z-index: 999;" :style="{marginTop:marginTop+'rpx',borderColor:borderColor}"
 		@tap="fieldClick">
 		<view class="fui-textarea__wrap" :class="{'fui-textarea__flex-start':flexStart}"
 			:style="{paddingTop:padding[0] || 0,paddingRight:padding[1] || 0,paddingBottom:padding[2] || padding[0] || 0,paddingLeft:padding[3] || padding[1] || 0,backgroundColor:backgroundColor}">

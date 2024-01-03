@@ -56,7 +56,7 @@
 		<scan-dialog :show="showScan" :outWidth="420" :outHeight="280" :padding="50" :iconWidth="120" :iconHeight="120"
 			maskClosable>
 		</scan-dialog>
-		<assembly-qty-dialog :show="showAssemblyQty" :title="title" :buttons="buttons" maskClosable @click="onClick1"
+		<assembly-qty-dialog v-if="showAssemblyQty" :show="showAssemblyQty" :title="title" :num=1 :buttons="buttons" maskClosable @click="onClick1"
 			@close="onClose1" :materialInfo="materialInfo"></assembly-qty-dialog>
 		<scan-dialog :show="showMessage" imgUrl="success.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
 			:padding="76" :iconWidth="92" text="提交成功" maskClosable>
@@ -199,7 +199,7 @@
 						title: '正在确认'
 					})
 					let url = BaseApi + '/Assemble/AssembleNumber?Mid=' + _this.materialInfo.materialId +
-						'&returnQuantity=' + e.currentNum;
+						'&quantityUsed=' + e.currentNum;
 					console.log(url)
 					uni.request({
 						url: url,
@@ -209,6 +209,8 @@
 							'Content-Type': 'application/json;charset=utf-8'
 						},
 						success: (res) => {
+						
+						
 							console.log(res)
 							if (res.data.statusCode !== 200) {
 								uni.hideLoading()
@@ -222,11 +224,14 @@
 								uni.hideLoading()
 								this.onClose1()
 								this.showMessage = true
+								_this.getfreshData()
 								setTimeout(() => {
 									this.showMessage = false
+					
 								}, 3000)
 
 							}
+								
 						},
 						fail: (err) => {
 							uni.hideLoading()
@@ -245,6 +250,10 @@
 
 
 			},
+			refesh(){
+				this.$router.go(0)
+			}
+			,
 			onClickConfirm(e) {
 				let _this = this
 
@@ -264,13 +273,16 @@
 						},
 						success: (res) => {
 							console.log(res)
+							uni.hideLoading()
 							if (res.data.statusCode !== 200) {
-								uni.hideLoading()
+								
 								_this.message = res.data.message
 								_this.showError = true
 								setTimeout(() => {
 									_this.showError = false
+									
 								}, 3000)
+								
 								return
 							} else {
 
@@ -302,6 +314,76 @@
 				} else {
 					this.onCloseConfirm()
 				}
+			},
+			getfreshData() {
+				let _this = this;
+				let url1 = BaseApi + '/Basedata/Listdata?Id=' + _this.Id;
+				let url2 = BaseApi + '/Basedata/Topdata?Id=' + _this.Id;
+				let request1 = new Promise((resolve, reject) => {
+					uni.request({
+						url: url1,
+						method: 'GET',
+						header: {
+							'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+							'Content-Type': 'application/json;charset=utf-8'
+						},
+						success: (res) => {
+							resolve(res);
+						},
+						fail: (err) => {
+							reject(err);
+						}
+					});
+				});
+			
+				let request2 = new Promise((resolve, reject) => {
+					uni.request({
+						url: url2,
+						method: 'GET',
+						header: {
+							'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+							'Content-Type': 'application/json;charset=utf-8'
+						},
+						success: (res) => {
+							resolve(res);
+						},
+						fail: (err) => {
+							reject(err);
+						}
+					});
+				});
+			
+				Promise.all([request1, request2]).then(([res1, res2]) => {
+					if (res1.data.statusCode !== 200) {
+						_this.message = res1.data.message
+						_this.showError = true
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						return
+					} else if (res2.data.statusCode !== 200) {
+						_this.message = res2.data.message
+						_this.showError = true
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						return
+					} else {
+						uni.hideLoading()
+						uni.redirectTo({
+							url: `/pages/startToAssembly/startToAssembly?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
+						})
+					}
+					// 在这里写你的逻辑
+				}).catch(err => {
+					this.showError = true
+					this.message = '请求失败'
+					setTimeout(() => {
+						_this.showError = false
+					}, 3000)
+					console.log(err)
+					// 处理请求失败的情况
+				});
 			},
 			getReturnData() {
 				let _this = this;
@@ -552,6 +634,7 @@
 				uni.showLoading({
 					title: '正在搜索'
 				})
+				console.log(this.Id)
 				let url = BaseApi + '/Search?Id=' + this.Id + '&Info=' + e.detail.value;
 				console.log(url)
 				uni.request({

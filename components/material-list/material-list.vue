@@ -14,37 +14,37 @@
 				</view>
 				<view class="material-label">
 					<view>
-						<view>物料名称</view>
+						<view>物料名称：</view>
 						<view>{{item.description}}</view>
 					</view>
 					<view>
-						<view>物料编号</view>
+						<view>物料编号：</view>
 						<view>{{item.materialNo}}</view>
 					</view>
 					<view>
-						<view>物料位置</view>
+						<view>物料位置：</view>
 						<view>{{item.workshopAreaName}}-{{item.materialCarNo}}-{{item.materialBoxNo}}</view>
 					</view>
 				</view>
 			</view>
 			<view class="material-qty">
 				<view>
-					<view>领料数量</view>
+					<view>领料数量 </view>
 					<view style="color: #414546">{{item.totalQuantity}}</view>
 					<span></span>
 				</view>
 				<view>
-					<view>装配数量</view>
+					<view>装配数量 </view>
 					<view style="color: #00893d;">{{item.quantityUsed}}</view>
 					<span></span>
 				</view>
 				<view>
-					<view>退库数量</view>
+					<view>退库数量                       </view>
 					<view>{{item.returnQuantity}}</view>
 					<span></span>
 				</view>
 				<view>
-					<view>报废数量</view>
+					<view>报废数量 </view>
 					<view>{{item.scrapQuantity}}</view>
 				</view>
 			</view>
@@ -243,7 +243,7 @@
 					fontSize: 3,
 					isBold: false,
 					isUnderLine: false,
-					content: 'PO/Item       '
+					content: 'PO/Item        '
 				});
 
 				// printer.setFontSize({
@@ -264,7 +264,7 @@
 					fontSize: 3,
 					isBold: false,
 					isUnderLine: false,
-					content: 'Qty                '
+					content: 'Qty                 '
 				});
 				printer.printText2({
 					offset: 0,
@@ -278,7 +278,7 @@
 					fontSize: 3,
 					isBold: false,
 					isUnderLine: false,
-					content: 'Material        '
+					content: 'Material         '
 				});
 				printer.printText2({
 					offset: 0,
@@ -292,7 +292,7 @@
 					fontSize: 3,
 					isBold: false,
 					isUnderLine: false,
-					content: 'Description  '
+					content: 'Description   '
 				});
 
 
@@ -309,7 +309,7 @@
 					fontSize: 3,
 					isBold: false,
 					isUnderLine: false,
-					content: 'WBS              '
+					content: 'WBS               '
 				});
 				printer.printText2({
 					offset: 0,
@@ -323,7 +323,7 @@
 					fontSize: 3,
 					isBold: false,
 					isUnderLine: false,
-					content: 'Station          '
+					content: 'Station           '
 				});
 				printer.printText2({
 					offset: 0,
@@ -353,7 +353,7 @@
 					fontSize: 3,
 					isBold: false,
 					isUnderLine: false,
-					content: 'BOM NO.     '
+					content: 'BOM NO.      '
 
 				});
 
@@ -363,7 +363,7 @@
 					fontSize: 3,
 					isBold: true,
 					isUnderLine: false,
-					content: `${item.bomno}` + '\n'
+					content: ` ${item.bomno}` + '\n'
 				});
 
 				printer.printText2({
@@ -371,7 +371,7 @@
 					fontSize: 3,
 					isBold: false,
 					isUnderLine: false,
-					content: 'Bom Item     '
+					content: 'Bom Item      '
 				});
 
 
@@ -405,7 +405,7 @@
 					fontSize: 3,
 					isBold: false,
 					isUnderLine: false,
-					content: 'Packed By    '
+					content: 'Packed By     '
 				});
 
 

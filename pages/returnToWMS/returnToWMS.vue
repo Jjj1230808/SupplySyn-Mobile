@@ -1,7 +1,7 @@
 <template>
 
 	<view>
-		<navbar style="position: fixed;left: 0;right: 0;top: 0;" title="退库" :isCanBack="true" text="ST03-80">
+		<navbar style="position: fixed;left: 0;right: 0;top: 0;" title="退库" :isCanBack="true" :text="topData.stationNo">
 		</navbar>
 		<view class="search-input-container" v-if="isShowSearch" @click="isShowSearch= false">
 			<view class="search-area" @click.stop="">
@@ -29,8 +29,8 @@
 				<view>剩余数量 <span style="color: #f2b704;">{{topData.remainingQuantitys}}</span></view>
 			</view>
 		</view>
-		<view class="tip" v-if="topData.remainingQuantitys>0">
-			<image style="width: 32rpx;height: 32rpx;margin-right: 10rpx;" src="../../static/img/qr_code_scanner.svg"
+		<view class="tip" v-if="topData.remainingQuantitys>0" >
+			<image style="width: 32rpx;height: 32rpx;margin-right: 10rpx;color: #000;" src="../../static/img/qr_code_scanner.svg"
 				mode=""></image>
 			请点击扫码处处理剩余物料
 		</view>
@@ -65,7 +65,7 @@
 		<scan-dialog :show="showScan" :outWidth="420" :outHeight="280" :padding="50" :iconWidth="120" :iconHeight="120"
 			maskClosable>
 		</scan-dialog>
-		<assembly-qty-dialog :show="showAssemblyQty" :title="title" :buttons="buttons" maskClosable @click="onClick1"
+		<assembly-qty-dialog v-if="showAssemblyQty" :show="showAssemblyQty" :title="title" :buttons="buttons" maskClosable @click="onClick1"
 			numText="本次退库数量" @close="onClose1" :materialInfo="materialInfo"></assembly-qty-dialog>
 		<scan-dialog :show="showMessage" imgUrl="success.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
 			:padding="76" :iconWidth="92" text="提交成功" maskClosable>
@@ -215,6 +215,7 @@
 								uni.hideLoading()
 								_this.message = res.data.message
 								_this.showError = true
+							
 								setTimeout(() => {
 									_this.showError = false
 								}, 3000)
@@ -222,6 +223,7 @@
 								uni.hideLoading()
 								this.onClose1()
 								this.showMessage = true
+								_this.getfreshData()
 								setTimeout(() => {
 									this.showMessage = false
 								}, 3000)
@@ -264,8 +266,9 @@
 						},
 						success: (res) => {
 							console.log(res)
+							uni.hideLoading()
 							if (res.data.statusCode !== 200) {
-								uni.hideLoading()
+								
 								_this.message = res.data.message
 								_this.showError = true
 								setTimeout(() => {
@@ -277,12 +280,13 @@
 								_this.onCloseConfirm()
 
 								this.showMessage = true
-								uni.navigateTo({
-									url: '/pages/function/function'
-								})
 								setTimeout(() => {
 									this.showMessage = false
 								}, 3000)
+								uni.navigateTo({
+									url: '/pages/function/function'
+								})
+								
 
 							}
 						},
@@ -391,6 +395,7 @@
 				scanDevice.setOutScanMode(0); // 扫描模式=广播
 
 				scanDevice.startScan()
+			
 				setTimeout(() => {
 					this.showScan = false
 				}, 3000)
@@ -439,6 +444,77 @@
 				});
 
 			},
+			//结束刷新
+			getfreshData() {
+				let _this = this;
+				let url1 = BaseApi + '/Basedata/Listdata?Id=' + _this.Id;
+				let url2 = BaseApi + '/Basedata/Topdata?Id=' + _this.Id;
+				let request1 = new Promise((resolve, reject) => {
+					uni.request({
+						url: url1,
+						method: 'GET',
+						header: {
+							'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+							'Content-Type': 'application/json;charset=utf-8'
+						},
+						success: (res) => {
+							resolve(res);
+						},
+						fail: (err) => {
+							reject(err);
+						}
+					});
+				});
+			
+				let request2 = new Promise((resolve, reject) => {
+					uni.request({
+						url: url2,
+						method: 'GET',
+						header: {
+							'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+							'Content-Type': 'application/json;charset=utf-8'
+						},
+						success: (res) => {
+							resolve(res);
+						},
+						fail: (err) => {
+							reject(err);
+						}
+					});
+				});
+			
+				Promise.all([request1, request2]).then(([res1, res2]) => {
+					if (res1.data.statusCode !== 200) {
+						_this.message = res1.data.message
+						_this.showError = true
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						return
+					} else if (res2.data.statusCode !== 200) {
+						_this.message = res2.data.message
+						_this.showError = true
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						return
+					} else {
+						uni.hideLoading()
+						uni.redirectTo({
+							url: `/pages/returnToWMS/returnToWMS?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
+						})
+					}
+					// 在这里写你的逻辑
+				}).catch(err => {
+					this.showError = true
+					this.message = '请求失败'
+					setTimeout(() => {
+						_this.showError = false
+					}, 3000)
+					console.log(err)
+					// 处理请求失败的情况
+				});
+			},
 			closeSearch() {
 				this.materialCode = ''
 				this.isShowSearch = false
@@ -475,7 +551,7 @@
 		right: 0;
 		background-color: #fff;
 		border-top: 1rpx solid #ced5da;
-		z-index: 9999;
+		z-index: 998;
 	}
 
 	.visual-bar {
@@ -605,7 +681,7 @@
 		position: absolute;
 		left: 0;
 		right: 0;
-		top: 333rpx;
+		top: 390rpx;
 		padding-top: 20rpx;
 		overflow: auto;
 		padding-bottom: 130rpx;
@@ -664,17 +740,18 @@
 	}
 
 	.tip {
+		z-index: 999;
 		display: flex;
 		align-items: center;
 		height: 57rpx;
 		justify-content: center;
 		width: 100%;
-		background: #E5F4E9;
+		background: #FccF46;
 		position: fixed;
 		top: 276rpx;
 		left: 0;
 		right: 0;
-		color: #00893d;
+		color: #000;
 		font-size: 28rpx;
 		font-weight: bold;
 	}

@@ -41,7 +41,11 @@
 					<view>报废数量</view>
 					<view>{{materialInfo.scrapQuantity}}</view>
 				</view>
-				<view class="assembly-num">
+				<view  v-if="title!=='物料退回'"  class="assembly-num">
+					<view>{{numText}}</view>
+					<cc-numbox :maxNum="materialInfo.remainingQuantity" @change="changeNum"></cc-numbox>
+				</view>
+				<view  v-if="title==='物料退回'"  class="assembly-num">
 					<view>{{numText}}</view>
 					<cc-numbox :maxNum="materialInfo.quantityUsed" @change="changeNum"></cc-numbox>
 				</view>
