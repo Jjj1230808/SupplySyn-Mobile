@@ -53,7 +53,7 @@
 		<view class="link-top" @click="linkToTop" v-if="!isShowSearch">
 
 		</view>
-		<scan-dialog :show="showScan" :outWidth="420" :outHeight="280" :padding="50" :iconWidth="120" :iconHeight="120"
+		<scan-dialog :show="showScan"  text="请扫描二维码进行装配" :outWidth="420" :outHeight="280" :padding="50" :iconWidth="120" :iconHeight="120"
 			maskClosable>
 		</scan-dialog>
 		<assembly-qty-dialog v-if="showAssemblyQty" :show="showAssemblyQty" :title="title" :num=1 :buttons="buttons" maskClosable @click="onClick1"
@@ -186,6 +186,7 @@
 		watch: {
 
 		},
+	
 		methods: {
 			onClose1(e) {
 				this.showAssemblyQty = false

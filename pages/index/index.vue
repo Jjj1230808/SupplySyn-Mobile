@@ -325,8 +325,8 @@
 				MyCardNum = MyCardNum.substring(0, 14)
 				console.log(MyCardNum);
 				// 发起请求
-				let url = `https://qakimiworkbenchbe.schaefflercn.com/Home/EmployeeCardNoValidation?cardNo=8060505a914304`
-				// let url = `https://kimihomebe.schaefflercn.com/Home/EmployeeCardNoValidation?cardNo=${MyCardNum}`
+				//let url = `https://qakimiworkbenchbe.schaefflercn.com/Home/EmployeeCardNoValidation?cardNo=8060505a914304`
+				 let url = `https://kimihomebe.schaefflercn.com/Home/EmployeeCardNoValidation?cardNo=${MyCardNum}`
 				// let url = this.baseUrl_home + MyCardNum
 				console.log(url);
 				uni.request({

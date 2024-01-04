@@ -175,7 +175,8 @@
 						router: '/pages/returnList/returnList'
 					}, ]
 				}],
-				currentRoute: null
+				currentRoute: null,
+				currentUrl: null
 			}
 		},
 		// onUnload() {
@@ -199,28 +200,7 @@
 
 
 
-		onBackPress(options) {
-			console.log(options);
-
-			if (options.from === 'backbutton') {
-				uni.showModal({
-					title: "提示：",
-					content: "是否退出登录？",
-					confirmText: '取消',
-					cancelText: '确定',
-					success: function(res) {
-						if (res.confirm) {
-							console.log('用户点击取消');
-						} else if (res.cancel) {
-							uni.redirectTo({
-								url: '/pages/index/index'
-							})
-						}
-					}
-				})
-				return true
-			}
-		},
+		
 		onLoad(options) {
 			// let pages = getCurrentPages()
 			// console.log(pages.length);
@@ -257,8 +237,16 @@
 			// console.log(this.range);
 			// this.adAccount = uni.getStorageSync('adAccount')
 			// console.log(this.adAccount);
+			
+				
 		},
+//  onUnload() {
+// 	 uni.reLaunch({
+// 	 		url: '/pages/index/index'
+// 	 	})
+	
 
+// },
 		onHide() {
 			console.log('onhide')
 			scanDevice.setOutScanMode(1); // 扫描模式=输入框
@@ -266,10 +254,15 @@
 			this.unregisterScan()
 		},
 		onShow() {
+			this.userName = uni.getStorageSync('userName')
 			this.initScan(this.currentRoute)
 			this.registerScan()
 			scanDevice.setOutScanMode(0); // 扫描模式=广播
 		},
+		onBackPress(e){
+			console.log('123')
+		},
+	
 		methods: {
 			registerScan() {
 				main.registerReceiver(receiver, filter);
@@ -305,10 +298,19 @@
 						console.log(uni.getStorageSync("scToken"))
 
 						let request1 = new Promise((resolve, reject) => {
+							//退库
+							if(_this.currentRoute=== '/pages/returnList/returnList'){
+									_this.currentUrl = BaseApi +'/StockReturnDocument/getlistdaba?Id=' + codeStr
+								}else 
+								//物料退回
+								if(_this.currentRoute=== '/pages/materialReturn/materialReturn'){
+									_this.currentUrl = BaseApi + '/GetMaterialFallbackDataSources?Id=' + codeStr
+							    }else{
+								_this.currentUrl= BaseApi + '/Basedata/Listdata?Id=' + codeStr
+							}
+							console.log(_this.currentUrl)
 							uni.request({
-								url: _this.currentRoute !== '/pages/returnList/returnList' ?
-									BaseApi + '/Basedata/Listdata?Id=' + codeStr : BaseApi +
-									'/StockReturnDocument/getlistdaba?Id=' + codeStr,
+								url:_this.currentUrl,
 								method: 'GET',
 								header: {
 									'Authorization': 'Bearer ' + uni.getStorageSync(
@@ -372,6 +374,7 @@
 								uni.navigateTo({
 									url: `${_this.currentRoute}?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
 								})
+									_this.currentRoute=null
 							}
 							// 在这里写你的逻辑
 						}).catch(err => {
@@ -405,8 +408,9 @@
 				scanDevice.startScan()
 				setTimeout(() => {
 					this.show1 = false
-					this.currentRoute=null
-				}, 3000)
+				this.currentRoute=null
+				}, 5000)
+					
 			},
 			// back() {
 			// 	uni.navigateBack()

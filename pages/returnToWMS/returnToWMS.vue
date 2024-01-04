@@ -30,7 +30,7 @@
 			</view>
 		</view>
 		<view class="tip" v-if="topData.remainingQuantitys>0" >
-			<image style="width: 32rpx;height: 32rpx;margin-right: 10rpx;color: #000;" src="../../static/img/qr_code_scanner.svg"
+			<image style="width: 32rpx;height: 32rpx;margin-right: 10rpx;color: #000; ;" src="../../static/img/qr_code_scanner.svg"
 				mode=""></image>
 			请点击扫码处处理剩余物料
 		</view>
@@ -62,7 +62,7 @@
 		<view class="link-top" @click="linkToTop" v-if="!isShowSearch">
 
 		</view>
-		<scan-dialog :show="showScan" :outWidth="420" :outHeight="280" :padding="50" :iconWidth="120" :iconHeight="120"
+		<scan-dialog :show="showScan" text="请扫描二维码进行退库" :outWidth="420" :outHeight="280" :padding="50" :iconWidth="120" :iconHeight="120"
 			maskClosable>
 		</scan-dialog>
 		<assembly-qty-dialog v-if="showAssemblyQty" :show="showAssemblyQty" :title="title" :buttons="buttons" maskClosable @click="onClick1"
@@ -283,7 +283,7 @@
 								setTimeout(() => {
 									this.showMessage = false
 								}, 3000)
-								uni.navigateTo({
+								uni.reLaunch({
 									url: '/pages/function/function'
 								})
 								
@@ -740,7 +740,7 @@
 	}
 
 	.tip {
-		z-index: 999;
+		z-index: 990;
 		display: flex;
 		align-items: center;
 		height: 57rpx;

@@ -14,16 +14,16 @@
 				</view>
 				<view class="material-label">
 					<view>
-						<view>物料名称：</view>
-						<view>{{item.description}}</view>
+						<view >物料名称：</view>
+						<view style="word-wrap: break-word;">{{item.description}}</view>
 					</view>
 					<view>
 						<view>物料编号：</view>
-						<view>{{item.materialNo}}</view>
+						<view class="material-no">{{item.materialNo}}</view>
 					</view>
 					<view>
 						<view>物料位置：</view>
-						<view>{{item.workshopAreaName}}-{{item.materialCarNo}}-{{item.materialBoxNo}}</view>
+						<view>{{item.workshopAreaName}}{{item.materialCarNo? '-'+item.materialCarNo :''}}{{ item.materialBoxNo?'-'+item.materialBoxNo : ''}}</view>
 					</view>
 				</view>
 			</view>
@@ -159,11 +159,17 @@
 					})
 				}
 			})
+	
 		},
 		mounted() {
 			const materialList = this.materialList
+			
 		},
+		
+		
+		
 		methods: {
+			
 			printBagItem(item) {
 				console.log(item)
 				// if (item.size == 0) {
@@ -515,13 +521,15 @@
 		height: 350rpx;
 		background-color: #fff;
 		border-radius: 10rpx;
-		margin: 0 20rpx 20rpx 20rpx;
+		margin: 0 10rpx 10rpx 10rpx;
 	}
 
 	.material-info {
 		padding: 24rpx;
 	}
-
+.material-no{
+	white-space: pre-line
+}
 	.material-info::after {
 		display: block;
 		clear: both;
