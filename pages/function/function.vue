@@ -347,8 +347,7 @@
 						});
 
 						Promise.all([request1, request2]).then(([res1, res2]) => {
-							console.log(res1);
-							console.log(res2)
+						
 							if (res1.data.statusCode !== 200) {
 								uni.hideLoading()
 								_this.message = res1.data.message

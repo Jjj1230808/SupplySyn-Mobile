@@ -14,8 +14,8 @@
 				</view>
 				<view class="material-label">
 					<view>
-						<view >物料名称：</view>
-						<view style="word-wrap: break-word;">{{item.description}}</view>
+						<view class="material-name-label">物料名称：</view>
+						<view class="material-name-text">{{item.description}}</view>
 					</view>
 					<view>
 						<view>物料编号：</view>
@@ -23,7 +23,9 @@
 					</view>
 					<view>
 						<view>物料位置：</view>
-						<view>{{item.workshopAreaName}}{{item.materialCarNo? '-'+item.materialCarNo :''}}{{ item.materialBoxNo?'-'+item.materialBoxNo : ''}}</view>
+						<view>
+							{{item.workshopAreaName}}{{item.materialCarNo? '-'+item.materialCarNo :''}}{{ item.materialBoxNo?'-'+item.materialBoxNo : ''}}
+						</view>
 					</view>
 				</view>
 			</view>
@@ -39,7 +41,7 @@
 					<span></span>
 				</view>
 				<view>
-					<view>退库数量                       </view>
+					<view>退库数量 </view>
 					<view>{{item.returnQuantity}}</view>
 					<span></span>
 				</view>
@@ -159,17 +161,17 @@
 					})
 				}
 			})
-	
+
 		},
 		mounted() {
 			const materialList = this.materialList
-			
+
 		},
-		
-		
-		
+
+
+
 		methods: {
-			
+
 			printBagItem(item) {
 				console.log(item)
 				// if (item.size == 0) {
@@ -516,9 +518,27 @@
 		padding-bottom: 130rpx;
 		/* z-index: 9999 !important; */
 	/* } */
+	.material-label>view:nth-child(1)::after {
+		display: block;
+		clear: both;
+		content: "";
+	}
+
+	.material-label>view:nth-child(1) {
+		display: block;
+	}
+
+	.material-name-label {
+		float: left;
+	}
+
+	.material-name-text {
+		float: left;
+		max-width: 434rpx;
+		word-wrap: break-word;
+	}
 
 	.material-item {
-		height: 350rpx;
 		background-color: #fff;
 		border-radius: 10rpx;
 		margin: 0 10rpx 10rpx 10rpx;
@@ -527,9 +547,11 @@
 	.material-info {
 		padding: 24rpx;
 	}
-.material-no{
-	white-space: pre-line
-}
+
+	.material-no {
+		white-space: pre-line
+	}
+
 	.material-info::after {
 		display: block;
 		clear: both;
@@ -664,7 +686,6 @@
 	.to-do {
 		display: flex;
 		align-items: center;
-		width: 166rpx;
 		height: 50rpx;
 		background-color: rgba(252, 207, 70, 0.2);
 		padding: 0 12rpx;
