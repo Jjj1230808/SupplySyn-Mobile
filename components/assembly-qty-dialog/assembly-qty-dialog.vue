@@ -22,7 +22,7 @@
 				<view class="material-text">
 					<view>物料位置</view>
 					<view>
-						{{materialInfo.workshopAreaName}}-{{materialInfo.materialCarNo}}-{{materialInfo.materialBoxNo}}
+						{{materialInfo.workshopAreaName}}{{materialInfo.materialCarNo? '-'+materialInfo.materialCarNo :''}}{{ materialInfo.materialBoxNo?'-'+materialInfo.materialBoxNo : ''}}
 					</view>
 				</view>
 				<view class="material-text">
@@ -41,7 +41,11 @@
 					<view>报废数量</view>
 					<view>{{materialInfo.scrapQuantity}}</view>
 				</view>
-				<view class="assembly-num">
+				<view  v-if="title!=='物料退回'"  class="assembly-num">
+					<view>{{numText}}</view>
+					<cc-numbox :maxNum="materialInfo.remainingQuantity" @change="changeNum"></cc-numbox>
+				</view>
+				<view  v-if="title==='物料退回'"  class="assembly-num">
 					<view>{{numText}}</view>
 					<cc-numbox :maxNum="materialInfo.quantityUsed" @change="changeNum"></cc-numbox>
 				</view>
@@ -203,7 +207,7 @@
 <style>
 	.fui-dialog__wrap {
 		position: fixed;
-		z-index: 9999;
+		z-index: 998;
 		top: 0;
 		right: 0;
 		left: 0;
@@ -254,7 +258,7 @@
 	.material-text {
 		display: flex;
 		align-items: center;
-		margin-left: 30rpx;
+		margin-left: 25rpx;
 		margin-top: 8rpx;
 	}
 

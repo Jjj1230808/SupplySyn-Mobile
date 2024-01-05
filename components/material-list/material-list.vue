@@ -14,37 +14,39 @@
 				</view>
 				<view class="material-label">
 					<view>
-						<view>物料名称</view>
-						<view>{{item.description}}</view>
+						<view class="material-name-label">物料名称：</view>
+						<view class="material-name-text">{{item.description}}</view>
 					</view>
 					<view>
-						<view>物料编号</view>
-						<view>{{item.materialNo}}</view>
+						<view>物料编号：</view>
+						<view class="material-no">{{item.materialNo}}</view>
 					</view>
 					<view>
-						<view>物料位置</view>
-						<view>{{item.workshopAreaName}}-{{item.materialCarNo}}-{{item.materialBoxNo}}</view>
+						<view>物料位置：</view>
+						<view>
+							{{item.workshopAreaName}}{{item.materialCarNo? '-'+item.materialCarNo :''}}{{ item.materialBoxNo?'-'+item.materialBoxNo : ''}}
+						</view>
 					</view>
 				</view>
 			</view>
 			<view class="material-qty">
 				<view>
-					<view>领料数量</view>
+					<view>领料数量 </view>
 					<view style="color: #414546">{{item.totalQuantity}}</view>
 					<span></span>
 				</view>
 				<view>
-					<view>装配数量</view>
+					<view>装配数量 </view>
 					<view style="color: #00893d;">{{item.quantityUsed}}</view>
 					<span></span>
 				</view>
 				<view>
-					<view>退库数量</view>
+					<view>退库数量 </view>
 					<view>{{item.returnQuantity}}</view>
 					<span></span>
 				</view>
 				<view>
-					<view>报废数量</view>
+					<view>报废数量 </view>
 					<view>{{item.scrapQuantity}}</view>
 				</view>
 			</view>
@@ -159,11 +161,17 @@
 					})
 				}
 			})
+
 		},
 		mounted() {
 			const materialList = this.materialList
+
 		},
+
+
+
 		methods: {
+
 			printBagItem(item) {
 				console.log(item)
 				// if (item.size == 0) {
@@ -243,7 +251,7 @@
 					fontSize: 3,
 					isBold: false,
 					isUnderLine: false,
-					content: 'PO/Item       '
+					content: 'PO/Item        '
 				});
 
 				// printer.setFontSize({
@@ -264,7 +272,7 @@
 					fontSize: 3,
 					isBold: false,
 					isUnderLine: false,
-					content: 'Qty                '
+					content: 'Qty                 '
 				});
 				printer.printText2({
 					offset: 0,
@@ -278,7 +286,7 @@
 					fontSize: 3,
 					isBold: false,
 					isUnderLine: false,
-					content: 'Material        '
+					content: 'Material         '
 				});
 				printer.printText2({
 					offset: 0,
@@ -292,7 +300,7 @@
 					fontSize: 3,
 					isBold: false,
 					isUnderLine: false,
-					content: 'Description  '
+					content: 'Description   '
 				});
 
 
@@ -309,7 +317,7 @@
 					fontSize: 3,
 					isBold: false,
 					isUnderLine: false,
-					content: 'WBS              '
+					content: 'WBS               '
 				});
 				printer.printText2({
 					offset: 0,
@@ -323,7 +331,7 @@
 					fontSize: 3,
 					isBold: false,
 					isUnderLine: false,
-					content: 'Station          '
+					content: 'Station           '
 				});
 				printer.printText2({
 					offset: 0,
@@ -353,7 +361,7 @@
 					fontSize: 3,
 					isBold: false,
 					isUnderLine: false,
-					content: 'BOM NO.     '
+					content: 'BOM NO.      '
 
 				});
 
@@ -363,7 +371,7 @@
 					fontSize: 3,
 					isBold: true,
 					isUnderLine: false,
-					content: `${item.bomno}` + '\n'
+					content: ` ${item.bomno}` + '\n'
 				});
 
 				printer.printText2({
@@ -371,7 +379,7 @@
 					fontSize: 3,
 					isBold: false,
 					isUnderLine: false,
-					content: 'Bom Item     '
+					content: 'Bom Item      '
 				});
 
 
@@ -405,7 +413,7 @@
 					fontSize: 3,
 					isBold: false,
 					isUnderLine: false,
-					content: 'Packed By    '
+					content: 'Packed By     '
 				});
 
 
@@ -510,16 +518,38 @@
 		padding-bottom: 130rpx;
 		/* z-index: 9999 !important; */
 	/* } */
+	.material-label>view:nth-child(1)::after {
+		display: block;
+		clear: both;
+		content: "";
+	}
+
+	.material-label>view:nth-child(1) {
+		display: block;
+	}
+
+	.material-name-label {
+		float: left;
+	}
+
+	.material-name-text {
+		float: left;
+		max-width: 434rpx;
+		word-wrap: break-word;
+	}
 
 	.material-item {
-		height: 350rpx;
 		background-color: #fff;
 		border-radius: 10rpx;
-		margin: 0 20rpx 20rpx 20rpx;
+		margin: 0 10rpx 10rpx 10rpx;
 	}
 
 	.material-info {
 		padding: 24rpx;
+	}
+
+	.material-no {
+		white-space: pre-line
 	}
 
 	.material-info::after {
@@ -656,7 +686,6 @@
 	.to-do {
 		display: flex;
 		align-items: center;
-		width: 166rpx;
 		height: 50rpx;
 		background-color: rgba(252, 207, 70, 0.2);
 		padding: 0 12rpx;

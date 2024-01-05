@@ -48,10 +48,10 @@
 			:padding="76" :iconWidth="92" text="提交成功" maskClosable>
 		</scan-dialog>
 
-		<scan-dialog :show="showError" imgUrl="Error.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
+		<scan-dialog   :show="showError" imgUrl="Error.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
 			:padding="76" :iconWidth="92" :text="message" maskClosable>
 		</scan-dialog>
-		<assembly-qty-dialog :show="showAssemblyQty" :title="title" :buttons="buttons" maskClosable @click="onClick1"
+		<assembly-qty-dialog  v-if="showAssemblyQty" :show="showAssemblyQty" :title="title" :buttons="buttons" maskClosable @click="onClick1"
 			numText="本次退回数量" @close="onClose1" :materialInfo="materialInfo"></assembly-qty-dialog>
 	</view>
 </template>
@@ -147,13 +147,14 @@
 								uni.hideLoading()
 								this.onClose1()
 								this.showMessage = true
+								_this.getfreshData()
 								setTimeout(() => {
 									this.showMessage = false
 								}, 3000)
 
-								uni.navigateTo({
-									url: "/pages/function/function"
-								})
+								// uni.reLaunch({
+								// 	url: '/pages/function/function'
+								// })
 
 							}
 						},
@@ -179,6 +180,7 @@
 					title: '正在查询'
 				})
 				let _this = this;
+				console.log(e.id)
 				let url = BaseApi + '/GetDetail?Mid=' + JSON.stringify({
 					'Id': e.id
 				});
@@ -217,6 +219,77 @@
 						console.log(err)
 					}
 				});
+			},	
+			
+			getfreshData() {
+				let _this = this;
+				let url1 = BaseApi + '/GetMaterialFallbackDataSources?Id=' + _this.Id;
+				let url2 = BaseApi + '/Basedata/Topdata?Id=' + _this.Id;
+				let request1 = new Promise((resolve, reject) => {
+					uni.request({
+						url: url1,
+						method: 'GET',
+						header: {
+							'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+							'Content-Type': 'application/json;charset=utf-8'
+						},
+						success: (res) => {
+							resolve(res);
+						},
+						fail: (err) => {
+							reject(err);
+						}
+					});
+				});
+			
+				let request2 = new Promise((resolve, reject) => {
+					uni.request({
+						url: url2,
+						method: 'GET',
+						header: {
+							'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+							'Content-Type': 'application/json;charset=utf-8'
+						},
+						success: (res) => {
+							resolve(res);
+						},
+						fail: (err) => {
+							reject(err);
+						}
+					});
+				});
+			
+				Promise.all([request1, request2]).then(([res1, res2]) => {
+					if (res1.data.statusCode !== 200) {
+						_this.message = res1.data.message
+						_this.showError = true
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						return
+					} else if (res2.data.statusCode !== 200) {
+						_this.message = res2.data.message
+						_this.showError = true
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						return
+					} else {
+						uni.hideLoading()
+						uni.redirectTo({
+							url: `/pages/materialReturn/materialReturn?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
+						})
+					}
+					// 在这里写你的逻辑
+				}).catch(err => {
+					this.showError = true
+					this.message = '请求失败'
+					setTimeout(() => {
+						_this.showError = false
+					}, 3000)
+					console.log(err)
+					// 处理请求失败的情况
+				});
 			},
 			enterMaterialCode(e) {
 				console.log(e)
@@ -225,7 +298,7 @@
 				uni.showLoading({
 					title: '正在搜索'
 				})
-				let url = BaseApi + '/Search?Id=' + this.Id + '&Info=' + e.detail.value;
+				let url = BaseApi + '/SearchMaterialFallback?Id=' + this.Id + '&Info=' + e.detail.value;
 				console.log(url)
 				uni.request({
 					url: url,
@@ -292,7 +365,7 @@
 		right: 0;
 		background-color: #fff;
 		border-top: 1rpx solid #ced5da;
-		z-index: 9999;
+		z-index: 990;
 	}
 
 	.visual-bar {

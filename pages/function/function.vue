@@ -176,7 +176,8 @@
 						router: '/pages/returnList/returnList'
 					}, ]
 				}],
-				currentRoute: '/pages/returnList/returnList'
+				currentRoute: null,
+				currentUrl: null
 			}
 		},
 		// onUnload() {
@@ -200,28 +201,7 @@
 
 
 
-		onBackPress(options) {
-			console.log(options);
-
-			if (options.from === 'backbutton') {
-				uni.showModal({
-					title: "提示：",
-					content: "是否退出登录？",
-					confirmText: '取消',
-					cancelText: '确定',
-					success: function(res) {
-						if (res.confirm) {
-							console.log('用户点击取消');
-						} else if (res.cancel) {
-							uni.redirectTo({
-								url: '/pages/index/index'
-							})
-						}
-					}
-				})
-				return true
-			}
-		},
+		
 		onLoad(options) {
 			// let pages = getCurrentPages()
 			// console.log(pages.length);
@@ -265,7 +245,11 @@
 			// 	console.log(msg)
 			// }, false);
 		},
-
+//  onUnload() {
+// 	 uni.reLaunch({
+// 	 		url: '/pages/index/index'
+// 	 	})
+	
 
 		onHide() {
 			console.log('onhide')
@@ -278,6 +262,10 @@
 			this.registerScan()
 			scanDevice.setOutScanMode(0); // 扫描模式=广播
 		},
+		onBackPress(e){
+			console.log('123')
+		},
+	
 		methods: {
 			closeMask() {
 				this.show1 = false
@@ -317,10 +305,19 @@
 						console.log(uni.getStorageSync("scToken"))
 
 						let request1 = new Promise((resolve, reject) => {
+							//退库
+							if(_this.currentRoute=== '/pages/returnList/returnList'){
+									_this.currentUrl = BaseApi +'/StockReturnDocument/getlistdaba?Id=' + codeStr
+								}else 
+								//物料退回
+								if(_this.currentRoute=== '/pages/materialReturn/materialReturn'){
+									_this.currentUrl = BaseApi + '/GetMaterialFallbackDataSources?Id=' + codeStr
+							    }else{
+								_this.currentUrl= BaseApi + '/Basedata/Listdata?Id=' + codeStr
+							}
+							console.log(_this.currentUrl)
 							uni.request({
-								url: _this.currentRoute !== '/pages/returnList/returnList' ?
-									BaseApi + '/Basedata/Listdata?Id=' + codeStr : BaseApi +
-									'/StockReturnDocument/getlistdaba?Id=' + codeStr,
+								url:_this.currentUrl,
 								method: 'GET',
 								header: {
 									'Authorization': 'Bearer ' + uni.getStorageSync(
@@ -357,8 +354,7 @@
 						});
 
 						Promise.all([request1, request2]).then(([res1, res2]) => {
-							console.log(res1);
-							console.log(res2)
+						
 							if (res1.data.statusCode !== 200) {
 								uni.hideLoading()
 								_this.message = res1.data.message
@@ -384,6 +380,7 @@
 								uni.navigateTo({
 									url: `${_this.currentRoute}?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
 								})
+									_this.currentRoute=null
 							}
 							// 在这里写你的逻辑
 						}).catch(err => {

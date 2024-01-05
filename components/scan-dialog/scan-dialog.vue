@@ -33,7 +33,7 @@
 			},
 			text: {
 				type: String,
-				default: '请扫描二维码选择工位'
+				default: '请扫描正确的二维码'
 			},
 			imgUrl: {
 				type: String,

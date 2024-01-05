@@ -42,7 +42,7 @@
 			maskClosable>
 		</scan-dialog>
 
-		<scan-dialog :show="showMessage" imgUrl="success.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
+		<scan-dialog  :show="showMessage" imgUrl="success.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
 			:padding="76" :iconWidth="92" text="提交成功" maskClosable>
 		</scan-dialog>
 

@@ -325,14 +325,15 @@
 				MyCardNum = MyCardNum.substring(0, 14)
 				console.log(MyCardNum);
 				// 发起请求
-				let url = `https://qakimiworkbenchbe.schaefflercn.com/Home/EmployeeCardNoValidation?cardNo=${MyCardNum}`
-				// let url = `https://kimihomebe.schaefflercn.com/Home/EmployeeCardNoValidation?cardNo=${MyCardNum}`
+				//let url = `https://qakimiworkbenchbe.schaefflercn.com/Home/EmployeeCardNoValidation?cardNo=8060505a914304`
+				 let url = `https://kimihomebe.schaefflercn.com/Home/EmployeeCardNoValidation?cardNo=${MyCardNum}`
 				// let url = this.baseUrl_home + MyCardNum
 				console.log(url);
 				uni.request({
 					url: url,
 					method: "GET",
 					success: (res) => {
+						console.log(res)
 						if (res.data.succeeded) {
 							uni.showLoading({
 								title: '正在登录...'
@@ -342,14 +343,15 @@
 							this.adAccount = res.data.data.adAccount
 							uni.setStorageSync('adAccount', this.adAccount)
 							let url1 =
-								`https://qakimiworkbenchbe.schaefflercn.com/home/Login4Pda?account=${this.adAccount}&tenantld=${this.tenantId}`
-							// let url1 =
+								`https://kimihomebe.schaefflercn.com/home/Login4Pda?account=${this.adAccount}&tenantld=${this.tenantId}`
+							// let url1 =kimihomebe
 							// `https://kimihomebe.schaefflercn.com/Home/Login4Pda?account=${this.adAccount}&tenantId=${this.tenantId}`
 							// let url1 = this.login_account + 'account=' + this.adAccount + '&tenantId=' + this
 							// 	.tenantId
 							console.log(url1);
 							uni.request({
 								url: url1,
+								method: "GET",
 								success: (ress) => {
 									uni.hideLoading()
 									console.log(ress);
@@ -379,6 +381,7 @@
 
 								},
 								fail: (ress) => {
+									console.log(ress);
 									uni.showToast({
 										title: '登录失败',
 										icon: 'error'
@@ -443,46 +446,46 @@
 				}
 				return MyCardNum
 			},
-			getToken() {
-				let url = BaseApi + '/TokenAuth/Authenticate'
-				console.log(url)
-				let params = {
-					userNameOrEmailAddress: this.user,
-					password: '321!SMB!smb!',
-					rememberClient: true
-				}
-				uni.request({
-					url: url,
-					method: 'POST',
-					data: params,
-					success: (res) => {
-						console.log(res)
-						if (res.data.result.accessToken) {
-							uni.setStorageSync('token', 'Bearer ' + res.data.result.accessToken)
-							// this.refreshToken()
-							uni.showToast({
-								title: '登录成功'
-							})
-							uni.navigateTo({
-								url: '/pages/function/function'
+			// getToken() {
+			// 	let url = BaseApi + '/TokenAuth/Authenticate'
+			// 	console.log(url)
+			// 	let params = {
+			// 		userNameOrEmailAddress: this.user,
+			// 		password: '321!SMB!smb!',
+			// 		rememberClient: true
+			// 	}
+			// 	uni.request({
+			// 		url: url,
+			// 		method: 'POST',
+			// 		data: params,
+			// 		success: (res) => {
+			// 			console.log(res)
+			// 			if (res.data.result.accessToken) {
+			// 				uni.setStorageSync('token', 'Bearer ' + res.data.result.accessToken)
+			// 				// this.refreshToken()
+			// 				uni.showToast({
+			// 					title: '登录成功'
+			// 				})
+			// 				uni.navigateTo({
+			// 					url: '/pages/function/function'
 
-							})
-						}
+			// 				})
+			// 			}
 
-					},
-					fail: (res) => {
-						uni.hideLoading()
-						console.log(res);
-						if (res.errMsg.indexOf('request:fail') !== -1) {
-							console.log('neterror');
-							uni.showToast({
-								title: '请检查网络！',
-								icon: 'error'
-							})
-						}
-					}
-				})
-			},
+			// 		},
+			// 		fail: (res) => {
+			// 			uni.hideLoading()
+			// 			console.log(res);
+			// 			if (res.errMsg.indexOf('request:fail') !== -1) {
+			// 				console.log('neterror');
+			// 				uni.showToast({
+			// 					title: '请检查网络！',
+			// 					icon: 'error'
+			// 				})
+			// 			}
+			// 		}
+			// 	})
+			// },
 			refreshToken() {
 				setInterval(() => {
 					console.log('触发刷新token')
