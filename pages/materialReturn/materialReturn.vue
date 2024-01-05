@@ -40,8 +40,8 @@
 		<view class="link-top" @click="linkToTop" v-if="!isShowSearch">
 
 		</view>
-		<scan-dialog :show="showScan" :outWidth="420" :outHeight="280" :padding="50" :iconWidth="120" :iconHeight="120"
-			maskClosable>
+		<scan-dialog :show="showScan" v-on:close="closeMask" :outWidth="420" :outHeight="280" :padding="50"
+			:iconWidth="120" :iconHeight="120" maskClosable>
 		</scan-dialog>
 
 		<scan-dialog :show="showMessage" imgUrl="success.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
@@ -108,6 +108,10 @@
 
 		},
 		methods: {
+			closeMask() {
+				this.showScan = false
+
+			},
 			onClose1(e) {
 				this.showAssemblyQty = false
 			},
@@ -264,7 +268,7 @@
 			},
 			displaySearchBar() {
 				scanDevice.setOutScanMode(1); // 扫描模式=广播
-				scanDevice.startScan()
+				// scanDevice.startScan()
 				this.isShowSearch = true
 
 			},
