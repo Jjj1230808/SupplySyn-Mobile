@@ -2,8 +2,8 @@
     "name" : "Digital Shopfloor",
     "appid" : "__UNI__D21F84B",
     "description" : "",
-    "versionName" : "1.0.0",
-    "versionCode" : 100,
+    "versionName" : "1.1.1",
+    "versionCode" : 111,
     "transformPx" : false,
     "app-plus" : {
         "statusbar" : {
@@ -17,8 +17,7 @@
         "usingComponents" : true,
         "nvueCompiler" : "uni-app",
         "nvueStyleCompiler" : "uni-app",
-		"splashscreen": {
-		"splashscreen": {
+        "splashscreen" : {
             "alwaysShowBeforeRender" : true,
             "waiting" : true,
             "autoclose" : true,

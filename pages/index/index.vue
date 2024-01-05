@@ -326,7 +326,7 @@
 				console.log(MyCardNum);
 				// 发起请求
 				//let url = `https://qakimiworkbenchbe.schaefflercn.com/Home/EmployeeCardNoValidation?cardNo=8060505a914304`
-				 let url = `https://kimihomebe.schaefflercn.com/Home/EmployeeCardNoValidation?cardNo=${MyCardNum}`
+				let url = `https://kimihomebe.schaefflercn.com/Home/EmployeeCardNoValidation?cardNo=${MyCardNum}`
 				// let url = this.baseUrl_home + MyCardNum
 				console.log(url);
 				uni.request({
@@ -365,7 +365,7 @@
 										uni.setStorageSync('userName', ress.data.user.name)
 										console.log(ress.data.token.scToken);
 										uni.setStorageSync('scToken', ress.data.token.scToken)
-										uni.navigateTo({
+										uni.reLaunch({
 											url: '/pages/function/function?tenants=' +
 												encodeURIComponent(JSON.stringify(ress.data
 													.tenants))
