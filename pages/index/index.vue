@@ -365,7 +365,7 @@
 										uni.setStorageSync('userName', ress.data.user.name)
 										console.log(ress.data.token.scToken);
 										uni.setStorageSync('scToken', ress.data.token.scToken)
-										uni.navigateTo({
+										uni.reLaunch({
 											url: '/pages/function/function?tenants=' +
 												encodeURIComponent(JSON.stringify(ress.data
 													.tenants))
