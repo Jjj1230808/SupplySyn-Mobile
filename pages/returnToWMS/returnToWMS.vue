@@ -62,8 +62,8 @@
 		<view class="link-top" @click="linkToTop" v-if="!isShowSearch">
 
 		</view>
-		<scan-dialog :show="showScan" text="请扫描二维码进行退库" :outWidth="420" :outHeight="280" :padding="50" :iconWidth="120" :iconHeight="120"
-			maskClosable>
+		<scan-dialog :show="showScan" v-on:close="closeMask" :outWidth="420" :outHeight="280" :padding="50"
+			:iconWidth="120" :iconHeight="120" maskClosable>
 		</scan-dialog>
 		<assembly-qty-dialog v-if="showAssemblyQty" :show="showAssemblyQty" :title="title" :buttons="buttons" maskClosable @click="onClick1"
 			numText="本次退库数量" @close="onClose1" :materialInfo="materialInfo"></assembly-qty-dialog>
@@ -188,6 +188,10 @@
 
 		},
 		methods: {
+			closeMask() {
+				this.showScan = false
+
+			},
 			onClose1(e) {
 				this.showAssemblyQty = false
 			},
@@ -394,11 +398,10 @@
 				this.showScan = true
 				scanDevice.setOutScanMode(0); // 扫描模式=广播
 
-				scanDevice.startScan()
-			
-				setTimeout(() => {
-					this.showScan = false
-				}, 3000)
+				// scanDevice.startScan()
+				// setTimeout(() => {
+				// 	this.showScan = false
+				// }, 3000)
 			},
 			enterMaterialCode(e) {
 				console.log(e)
@@ -527,7 +530,7 @@
 			displaySearchBar() {
 				scanDevice.setOutScanMode(1); // 扫描模式=广播
 
-				scanDevice.startScan()
+				// scanDevice.startScan()
 				this.isShowSearch = true
 
 			},

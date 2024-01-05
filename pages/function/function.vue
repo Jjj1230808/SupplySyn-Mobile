@@ -43,8 +43,8 @@
 				<image src="../../static/WMS UI design/icon-shelf.svg" mode="widthFix"></image>
 			</view>
 		</view> -->
-		<scan-dialog :show="show1" :outWidth="420" :outHeight="280" :padding="50" :iconWidth="120" :iconHeight="120"
-			maskClosable>
+		<scan-dialog :show="show1" v-on:close="closeMask" :outWidth="420" :outHeight="280" :padding="50"
+			:iconWidth="120" :iconHeight="120">
 		</scan-dialog>
 		<scan-dialog :show="showError" imgUrl="Error.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
 			:padding="76" :iconWidth="92" :text="message" maskClosable>
@@ -119,6 +119,7 @@
 	var ScanDeviceClass = plus.android.importClass("android.device.ScanDevice");
 	var scanDevice;
 	scanDevice = new ScanDeviceClass();
+	var globalEvent = uni.requireNativePlugin('globalEvent');
 	export default {
 		data() {
 			return {
@@ -237,8 +238,12 @@
 			// console.log(this.range);
 			// this.adAccount = uni.getStorageSync('adAccount')
 			// console.log(this.adAccount);
-			
-				
+			// globalEvent.addEventListener('click', () => {
+			// 	console.log('windowClick')
+			// })
+			// plus.push.addEventListener('click', function(msg) {
+			// 	console.log(msg)
+			// }, false);
 		},
 //  onUnload() {
 // 	 uni.reLaunch({
@@ -246,7 +251,6 @@
 // 	 	})
 	
 
-// },
 		onHide() {
 			console.log('onhide')
 			scanDevice.setOutScanMode(1); // 扫描模式=输入框
@@ -254,8 +258,7 @@
 			this.unregisterScan()
 		},
 		onShow() {
-			this.userName = uni.getStorageSync('userName')
-			this.initScan(this.currentRoute)
+			this.initScan()
 			this.registerScan()
 			scanDevice.setOutScanMode(0); // 扫描模式=广播
 		},
@@ -264,14 +267,18 @@
 		},
 	
 		methods: {
+			closeMask() {
+				this.show1 = false
+				this.currentRoute = ''
+			},
 			registerScan() {
 				main.registerReceiver(receiver, filter);
 			},
 			unregisterScan() {
 				main.unregisterReceiver(receiver);
 			},
-			initScan(router) {
-				console.log('---------------进入了扫描------------', router)
+			initScan() {
+				console.log('---------------进入了扫描------------')
 				let _this = this;
 				main = plus.android.runtimeMainActivity(); //获取activity  
 				var IntentFilter = plus.android.importClass('android.content.IntentFilter');
@@ -404,12 +411,10 @@
 			linkRequest(item) {
 				this.show1 = true
 				this.currentRoute = item.router
-				scanDevice.startScan()
-				setTimeout(() => {
-					this.show1 = false
-				this.currentRoute=null
-				}, 5000)
-					
+				// scanDevice.startScan()
+				// setTimeout(() => {
+				// 	this.show1 = false
+				// }, 3000)
 			},
 			// back() {
 			// 	uni.navigateBack()
