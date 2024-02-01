@@ -36,7 +36,7 @@
 				{{userName}}
 			</view>
 		</view>
-		<view class="tool-right" @click="isLogOut" v-if="!userName">
+		<view class="tool-right" @click="isLogOut" v-if="!userName && text">
 			<view class="text-icon">
 				<image style="width: 32rpx;margin-top: 10rpx;color: #414546;"
 					src="../../static/img/precision_manufacturing.svg">
@@ -46,6 +46,7 @@
 				{{text}}
 			</view>
 		</view>
+		
 	</view>
 
 </template>

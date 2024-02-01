@@ -5,7 +5,9 @@
 			<view class="menu-items" v-for="(item,index) in menuList">
 				<view class="menu-title">{{item.title}}</view>
 				<view class="menu-item-container">
-					<view class="menu-item" v-for="(childItem,index) in item.menuItems" @click="linkRequest(childItem)">
+					<!-- <view class="menu-item" v-for="(childItem,index) in item.menuItems" @click="linkRequest(childItem)"> -->
+					<view class="menu-item" v-for="(childItem,index) in item.menuItems"
+						@click="showLocationc(childItem)">
 						<image :src="'../../static/img/'+childItem.image+'.svg'" mode="widthFix"></image>
 						<view class="menu-text">{{childItem.text}}</view>
 					</view>
@@ -49,6 +51,24 @@
 		<scan-dialog :show="showError" imgUrl="Error.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
 			:padding="76" :iconWidth="92" :text="message" maskClosable>
 		</scan-dialog>
+		<view v-show="show2" class="mark">
+			<view class="location-choose">
+				<view class="choose-title">
+
+
+					<button style="color:black;font-size: 38rpx;">选择定位方式</button>
+				</view>
+				<view style="height: 100rpx;">
+					<button @click="linkRequest()" style="color: green;">扫描二维码</button>
+				</view>
+				<view style="height: 100rpx;" class="">
+					<button @click="handlerChoose()" style="color: green;">手动选择</button>
+				</view>
+				<view style="height: 100rpx;" class="">
+					<button @click="closec()" style="color: #646464;">取消</button>
+				</view>
+			</view>
+		</view>
 	</view>
 
 </template>
@@ -129,6 +149,7 @@
 				// currentTen: '',
 				// range: [],
 				show1: false,
+				show2: false,
 				userName: '',
 				// placeHolder: '点击此处切换Tenant',
 				// adAccount: '',
@@ -163,21 +184,40 @@
 							router: '/pages/reprintLabel/reprintLabel'
 						},
 						{
-							text: '物料退库',
-							image: 'back-list',
-							router: '/pages/returnToWMS/returnToWMS'
+							//需要换页面
+							text: '物料报废',
+							image: 'material-scrap',
+							router: '/pages/materialScrap/materialScrap'
 						}
 					]
 				}, {
 					title: '单据管理',
 					menuItems: [{
 						text: '退库单',
-						image: 'back-list',
+						image: 'returnwms-doc',
 						router: '/pages/returnList/returnList'
-					}, ]
+					}, {
+						text: '报废单',
+						image: 'scrap-doc',
+						router: '/pages/scrapList/scrapList'
+					}]
+				}, {
+					title: '物料签收',
+					menuItems: [{
+						text: '入库签收',
+						image: 'towms-sign',
+						router: '/pages/entrySign/entrySign'
+					}, {
+						text: '报废签收',
+						image: 'scrap-sign',
+						router: '/pages/scrapSign/scrapSign'
+					}]
 				}],
 				currentRoute: null,
-				currentUrl: null
+				currentRoute1: null,
+				currentUrl: null,
+				DocumentId: null
+
 			}
 		},
 		// onUnload() {
@@ -201,7 +241,7 @@
 
 
 
-		
+
 		onLoad(options) {
 			// let pages = getCurrentPages()
 			// console.log(pages.length);
@@ -217,39 +257,14 @@
 			scanDevice.openScan()
 
 
-			// let tenantslist = tenants.tenants
-			// this.range = tenants.tenants.map((item) => {
-			// 	return {
-			// 		value: item.id,
-			// 		text: item.name
-			// 	}
-			// })
 
-			// tenantslist.forEach((item) => {
-			// 	if (item.id == tenants.user.tenantId) {
-			// 		this.currentTen = item.name
-			// 	}
-			// })
-			// // this.currid = this.range[0].value
 
-			// console.log(this.currentTen);
-			// console.log(this.currid);
-			// // this.range = tenants
-			// console.log(this.range);
-			// this.adAccount = uni.getStorageSync('adAccount')
-			// console.log(this.adAccount);
-			// globalEvent.addEventListener('click', () => {
-			// 	console.log('windowClick')
-			// })
-			// plus.push.addEventListener('click', function(msg) {
-			// 	console.log(msg)
-			// }, false);
 		},
-//  onUnload() {
-// 	 uni.reLaunch({
-// 	 		url: '/pages/index/index'
-// 	 	})
-	
+		//  onUnload() {
+		// 	 uni.reLaunch({
+		// 	 		url: '/pages/index/index'
+		// 	 	})
+
 
 		onHide() {
 			console.log('onhide')
@@ -262,10 +277,10 @@
 			this.registerScan()
 			scanDevice.setOutScanMode(0); // 扫描模式=广播
 		},
-		onBackPress(e){
+		onBackPress(e) {
 			console.log('123')
 		},
-	
+
 		methods: {
 			closeMask() {
 				this.show1 = false
@@ -293,9 +308,15 @@
 
 						let codeStr = utf8ByteToUnicodeStr(code);
 
+
 						console.log('codeStr:', codeStr);
+
+
+
+
 						// console.log(taskInfo);
 						// let taskId = taskInfo.RelatedId
+						// _this.getDocumentId(codeStr)
 						_this.show1 = false
 						uni.showLoading({
 							title: '正在查询'
@@ -304,20 +325,91 @@
 
 						console.log(uni.getStorageSync("scToken"))
 
-						let request1 = new Promise((resolve, reject) => {
-							//退库
-							if(_this.currentRoute=== '/pages/returnList/returnList'){
-									_this.currentUrl = BaseApi +'/StockReturnDocument/getlistdaba?Id=' + codeStr
-								}else 
-								//物料退回
-								if(_this.currentRoute=== '/pages/materialReturn/materialReturn'){
-									_this.currentUrl = BaseApi + '/GetMaterialFallbackDataSources?Id=' + codeStr
-							    }else{
-								_this.currentUrl= BaseApi + '/Basedata/Listdata?Id=' + codeStr
-							}
-							console.log(_this.currentUrl)
+
+
+						
+						//下面四个扫码的进入
+						//退库单
+						if (_this.currentRoute === '/pages/returnList/returnList') {
+
+
+
 							uni.request({
-								url:_this.currentUrl,
+								url: BaseApi + '/GetReturnDocumentId?Id=' +
+									codeStr,
+								method: 'GET',
+								header: {
+									'Authorization': 'Bearer ' + uni
+										.getStorageSync(
+											"scToken"),
+									'Content-Type': 'application/json;charset=utf-8'
+								},
+								success: (res) => {
+									console.log(res)
+									_this.DocumentId = res.data.data
+									//console.log(_this.currentUrl);
+									//this.DocumentId就是拿不到这个id
+									_this.currentUrl = BaseApi +
+										'/StockReturnDocument/getlistdaba?DocumentId=' +
+										res.data.data
+									console.log(_this.currentUrl);
+									console.log('request0');
+									return
+
+								},
+								fail: (err) => {
+									console.log(err);
+									uni.hideLoading()
+								}
+							});
+						} else if(_this.currentRoute === '/pages/scrapList/scrapList'){
+							uni.request({
+								url: BaseApi + '/GetScrapDocumentId?Id=' +
+									codeStr,
+								method: 'GET',
+								header: {
+									'Authorization': 'Bearer ' + uni
+										.getStorageSync(
+											"scToken"),
+									'Content-Type': 'application/json;charset=utf-8'
+								},
+								success: (res) => {
+									console.log(res)
+									_this.DocumentId = res.data.data
+									//console.log(_this.currentUrl);
+									//this.DocumentId就是拿不到这个id
+									_this.currentUrl = BaseApi +
+										'/GetScrapMaterialDataSourcesList?DocumentId=' +
+										res.data.data
+									console.log(_this.currentUrl);
+									console.log('request0');
+									return
+							
+								},
+								fail: (err) => {
+									console.log(err);
+									uni.hideLoading()
+								}
+							});
+							
+						}
+							//物料退回
+							else if (_this.currentRoute === '/pages/materialReturn/materialReturn') {
+								_this.currentUrl = BaseApi +
+									'/GetMaterialFallbackDataSources?Id=' + codeStr
+							} else
+								//物料报废
+								if (_this.currentRoute === '/pages/materialScrap/materialScrap') {
+									_this.currentUrl = BaseApi +
+										'/GetMaterialScrapDataSources?Id=' + codeStr
+								} else {
+									_this.currentUrl = BaseApi + '/Basedata/Listdata?Id=' + codeStr
+								}
+
+						let request1 = new Promise((resolve, reject) => {
+						setTimeout(()=>{
+							uni.request({
+								url: _this.currentUrl,
 								method: 'GET',
 								header: {
 									'Authorization': 'Bearer ' + uni.getStorageSync(
@@ -325,12 +417,19 @@
 									'Content-Type': 'application/json;charset=utf-8'
 								},
 								success: (res) => {
+									console.log(_this.currentUrl)
+									console.log(res)
 									resolve(res);
+									console.log('request1，成功');
 								},
 								fail: (err) => {
-									reject(err);
+									// reject(err);
+									uni.hideLoading()
+									console.log('request1,失败');
 								}
 							});
+						},500);
+
 						});
 
 						let request2 = new Promise((resolve, reject) => {
@@ -345,7 +444,10 @@
 									'Content-Type': 'application/json;charset=utf-8'
 								},
 								success: (res) => {
+
 									resolve(res);
+									console.log(
+										"request2")
 								},
 								fail: (err) => {
 									reject(err);
@@ -354,11 +456,12 @@
 						});
 
 						Promise.all([request1, request2]).then(([res1, res2]) => {
-						
+
 							if (res1.data.statusCode !== 200) {
 								uni.hideLoading()
 								_this.message = res1.data.message
 								_this.showError = true
+
 								setTimeout(() => {
 									_this.showError = false
 								}, 3000)
@@ -367,20 +470,20 @@
 								uni.hideLoading()
 								_this.message = res2.data.message
 								_this.showError = true
+
 								setTimeout(() => {
 									_this.showError = false
 								}, 3000)
 								return
 							} else {
 								uni.hideLoading()
-								console.log(res2)
-								// console.log(
-								// 	`${_this.currentRoute}?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`
-								// )
+
+
+
 								uni.navigateTo({
 									url: `${_this.currentRoute}?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
 								})
-									_this.currentRoute=null
+								_this.currentRoute = null
 							}
 							// 在这里写你的逻辑
 						}).catch(err => {
@@ -408,14 +511,26 @@
 					this.modalVisible = false;
 				}, 2000); // 2秒后关闭
 			},
-			linkRequest(item) {
-				this.show1 = true
-				this.currentRoute = item.router
+			handlerChoose() {
+				console.log(this.currentRoute1)
+				uni.navigateTo({
+						url: '/pages/locationProject/locationProject?currentRoute1=' + this.currentRoute1
+					}),
+					this.show2 = false,
+					console.log('123')
+			},
+			linkRequest() {
+				this.currentRoute = this.currentRoute1
+				this.show1 = true;
+				this.show2 = false
+				// this.currentRoute = item.router
 				// scanDevice.startScan()
 				// setTimeout(() => {
 				// 	this.show1 = false
 				// }, 3000)
 			},
+			//拿到documentId
+
 			// back() {
 			// 	uni.navigateBack()
 			// },
@@ -462,6 +577,10 @@
 			// 关闭窗口
 			closeDrawer(e) {
 				this.$refs[e].close()
+			},
+			showLocationc(item) {
+				this.show2 = true,
+					this.currentRoute1 = item.router
 			},
 			// 抽屉状态发生变化触发
 			change(e, type) {
@@ -512,8 +631,9 @@
 					url: '/pages/personalTask/myTask'
 				})
 			},
-
-
+			closec() {
+				this.show2 = false
+			},
 			changeToken() {
 				let url1 = this.$Api.account + 'account=' + this.adAccount + '&tenantId=' + this.currid
 				console.log(url1);
@@ -666,12 +786,13 @@
 	}
 
 	.menu-items {
-		height: 282rpx;
+		height: 300rpx;
 		width: 100%;
 		background-color: #fff;
-		margin: 16rpx 0;
-		padding: 10rpx 30rpx;
-		box-sizing: border-box;
+		margin-top: 16rpx;
+		padding: 10rpx 0 10rpx 20rpx;
+		// margin: 16rpx 0;
+		// padding: 10rpx 30rpx;
 
 		// .menu-item-container {
 		// 	display: flex;
@@ -684,19 +805,22 @@
 			line-height: 70rpx;
 			color: #414546;
 			font-weight: 700;
-			font-size: 28rpx;
+			font-size: 30rpx;
+			transform: translateX(15rpx);
 		}
 	}
 
+
 	.menu-item {
-		width: 204rpx;
-		height: 174rpx;
+		width: 315rpx;
+		height: 180rpx;
 		border-radius: 10px;
 		background: rgba(0, 137, 61, 0.06);
 		padding: 30rpx 20rpx;
 		box-sizing: border-box;
 		display: inline-block;
-		margin-right: 24rpx;
+		margin-right: 10px;
+		margin-left: 10px;
 
 		image {
 			width: 60rpx;
@@ -710,9 +834,59 @@
 			font-size: 28rpx;
 			color: #646464;
 			margin-top: 10rpx;
+			font-size: 30rpx;
 		}
 	}
 
+	.choose-title {
+		height: 100rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		font-size: 35rpx;
+		border-bottom: #ced5da 1px solid;
+	}
 
-	.menu-title {}
+	.location-choose {
+		border-radius: 15rpx;
+		display: flex;
+		flex-direction: column;
+		margin: 520rpx 80rpx;
+		width: 580rpx;
+		height: 400rpx;
+
+		background-color: white;
+		position: fixed;
+		z-index: 1000;
+		top: 0;
+		right: 0;
+		left: 0;
+		bottom: 0;
+	}
+
+	button {
+		margin: unset;
+		padding: unset;
+		background-color: white;
+	}
+
+	button:after {
+		border: unset;
+
+	}
+
+	.mark {
+
+		position: absolute;
+		height: 100%;
+		color: #fff;
+		background: rgba(0, 0, 0, 0.5);
+		left: 0%;
+		right: 0%;
+		top: 0%;
+		font-size: 26rpx;
+		text-align: center;
+		box-shadow: 2px -3px 100px -5px #FFFFFF;
+
+	}
 </style>

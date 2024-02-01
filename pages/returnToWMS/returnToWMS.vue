@@ -1,7 +1,7 @@
 <template>
-
+<!-- 退库变为装配完成  只能由开始装配页面的装配完成按钮跳转-->
 	<view>
-		<navbar style="position: fixed;left: 0;right: 0;top: 0;" title="退库" :isCanBack="true" :text="topData.stationNo">
+		<navbar style="position: fixed;left: 0;right: 0;top: 0;" title="装配完成 " :isCanBack="true" :text="topData.stationNo">
 		</navbar>
 		<view class="search-input-container" v-if="isShowSearch" @click="isShowSearch= false">
 			<view class="search-area" @click.stop="">
@@ -26,36 +26,32 @@
 			<view class="number-summarize">
 				<view>领料总数 <span style="color: #414546;">{{topData.totalQuantitys}}</span></view>
 				<view>已用数量 <span style="color: #00893d;">{{topData.quantityUseds}}</span></view>
-				<view>剩余数量 <span style="color: #f2b704;">{{topData.remainingQuantitys}}</span></view>
+				<view>剩余数量 <span style="color: #f2b704;">{{topData.remainingQuantitys<0?0:topData.remainingQuantitys}}</span></view>
 			</view>
 		</view>
 		<view class="tip" v-if="topData.remainingQuantitys>0" >
 			<image style="width: 32rpx;height: 32rpx;margin-right: 10rpx;color: #000; ;" src="../../static/img/qr_code_scanner.svg"
 				mode=""></image>
-			请点击扫码处处理剩余物料
+			请处理剩余物料
 		</view>
 		<scroll-view class="material-list" :style="{ top: topData.remainingQuantitys>0 ? 333+'rpx' : 276+'rpx' }">
-			<material-list :materialList="materialList" cardtitle="退库"></material-list>
+			<material-list :materialList="materialList"   @returnMaterial="returnMaterial"    cardtitle="退库"></material-list>
 
 		</scroll-view>
 		<view class="action-buttons" v-if="!isShowSearch">
 
-			<button @click="scanAssembly" class="scan-btn-active" v-if="topData.remainingQuantitys>0">
-				<image style="width: 36rpx;height: 36rpx;" src="../../static/img/qr_code.svg">
+			<button @click="scanAssembly()" class="scan-btn-active" >
+				<image style="width: 36rpx;height: 36rpx;" src="../../static/img/green-scan.svg">
 				</image>
-				扫码
+				扫码退库
 			</button>
-			<button @click="scanAssembly" class="scan-btn-disable" v-if="topData.remainingQuantitys===0">
-				<image style="width: 36rpx;height: 36rpx;" src="../../static/img/qr_code_disable.svg">
-				</image>
-				扫码
-			</button>
-			<button class="finish-assembly-btn-disable" v-if="topData.remainingQuantitys>0">
+			
+			<!-- <button @click="finishAssembly" class="finish-assembly-btn-active" v-if="topData.remainingQuantitys<=0">
 				</image>
 				结束装配
-			</button>
-			<button @click="finishAssembly" class="finish-assembly-btn-active" v-if="topData.remainingQuantitys===0">
-				</image>
+			</button> -->
+			<button @click="finishAssembly()" class="finish-assembly-btn-active" >
+				
 				结束装配
 			</button>
 		</view>
@@ -66,16 +62,26 @@
 			:iconWidth="120" :iconHeight="120" maskClosable>
 		</scan-dialog>
 		<assembly-qty-dialog v-if="showAssemblyQty" :show="showAssemblyQty" :title="title" :buttons="buttons" maskClosable @click="onClick1"
-			numText="本次退库数量" @close="onClose1" :materialInfo="materialInfo"></assembly-qty-dialog>
+			numText="实际退库数量" @close="onClose1" :materialInfo="materialInfo"></assembly-qty-dialog>
+		<assembly-qty-dialog v-if="showAssemblyQty2" :show="showAssemblyQty2" :title="title2" :buttons="buttons" maskClosable @click="onClick2"
+			numText="实际报废数量" @close="onClose2" :materialInfo="materialInfo2"></assembly-qty-dialog>
 		<scan-dialog :show="showMessage" imgUrl="success.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
 			:padding="76" :iconWidth="92" text="提交成功" maskClosable>
 		</scan-dialog>
-		<fui-dialog :show="showFinishConfirm" title="结束装配" content="是否结束装配,生成退库单？" :buttons="buttons" maskClosable
+		<!-- <scan-dialog :show="assemblefinish" imgUrl="success.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
+			:padding="76" :iconWidth="92" text="提交成功" maskClosable> -->
+		</scan-dialog>
+		<fui-dialog :show="showFinishConfirm" title="结束装配" content="退库单与报废单将提交设计部门审批,是否继续？" :buttons="buttons" maskClosable
 			@click="onClickConfirm" @close="onCloseConfirm">
+		</fui-dialog>
+		<fui-dialog :show="showFinishConfirmA" :title="title3" content="实际剩余物料数量与系统计算值不符" :buttons="buttons" maskClosable
+			@click="onClickConfirmA" @close="onCloseConfirmA">
 		</fui-dialog>
 		<scan-dialog :show="showError" imgUrl="Error.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
 			:padding="76" :iconWidth="92" :text="message" maskClosable>
 		</scan-dialog>
+		<tipsdialog :show2="show2"></tipsdialog>>
+		
 	</view>
 </template>
 
@@ -152,7 +158,11 @@
 				materialCode: '',
 				showScan: false,
 				showAssemblyQty: false,
-				title: '选择退库数量',
+				showAssemblyQty2:false,
+				// 选择退库数量
+				title: '退库',
+				title2: '报废',
+				title3: '',
 				buttons: [{
 					text: '取消',
 					color: '#646464'
@@ -162,10 +172,18 @@
 				}],
 				showMessage: false,
 				showFinishConfirm: false,
+			    showFinishConfirmA: false,
 				materialList: [],
 				message: '',
 				showError: false,
-				materialInfo: {}
+				materialInfo: {},
+				sigleReturn : false,
+				returnQuantity:'',
+				comments:'',
+				materialInfo2: {},
+				scrapQuantity:'',
+				comments2:'',
+				show2:true
 			};
 		},
 		onLoad(options) {
@@ -200,50 +218,85 @@
 				let _this = this
 
 				if (e.index === 1) {
-					uni.showLoading({
-						title: '正在确认'
-					})
-					let url = BaseApi + '/StockReturn/Edit?Mid=' + _this.materialInfo.materialId +
-						'&returnQuantity=' + e.currentNum;
-					console.log(url)
-					uni.request({
-						url: url,
-						method: 'GET',
-						header: {
-							'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
-							'Content-Type': 'application/json;charset=utf-8'
-						},
-						success: (res) => {
-							console.log(res)
-							if (res.data.statusCode !== 200) {
+			//现在的待装配数量 = 总-装配数量-填退库的数字-报废数量
+			// "totalQuantity": 24,
+			// "quantityUsed": 20,
+			// "remainingQuantity": 1,
+			// "returnQuantity": 3,
+			// "scrapQuantity": 0,
+			// "workshopAreaName": "A8",
+			// "materialCarNo": "L050",
+			// "materialBoxNo": "",
+			// "materialType": 10,
+			// "state": 20
+			this.returnQuantity = e.currentNum3,
+			this.comments = e.comments
+					let currentRemaining = e.totalQuantity - e.quantityUsed - e.currentNum3 - e.scrapQuantity
+					console.log(currentRemaining)
+					//通过currentRemaining判断是否出现弹窗
+					if(currentRemaining >=0){
+						//如果大于0，直接发送 ，不提示
+						uni.showLoading({
+							title: '正在确认'
+						})
+						// let url = BaseApi + '/StockReturn/Edit?Mid=' + _this.materialInfo.materialId +
+						// 	'&returnQuantity=' + e.currentNum;
+						let url = BaseApi + '/StockReturn/Edit';
+							//comments填写退库的备注，后面要加
+						let data={
+							mid:_this.materialInfo.materialId,
+							returnQuantity:this.returnQuantity,
+							comments:this.comments
+						}
+						console.log(data)
+						console.log(url)
+						uni.request({
+							url: url,
+							method: 'POST',
+							data:data,
+							header: {
+								'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+								'Content-Type': 'application/json;charset=utf-8'
+							},
+							success: (res) => {
+								console.log(res)
+								if (res.data.statusCode !== 200) {
+									uni.hideLoading()
+									_this.message = res.data.message
+									_this.showError = true
+								
+									setTimeout(() => {
+										_this.showError = false
+									}, 3000)
+								} else {
+									uni.hideLoading()
+									this.onClose1()
+									this.showMessage = true
+									_this.getfreshData()
+									setTimeout(() => {
+										this.showMessage = false
+									}, 3000)
+						
+								}
+							},
+							fail: (err) => {
 								uni.hideLoading()
-								_this.message = res.data.message
 								_this.showError = true
-							
+								_this.message = '请求失败'
 								setTimeout(() => {
 									_this.showError = false
 								}, 3000)
-							} else {
-								uni.hideLoading()
-								this.onClose1()
-								this.showMessage = true
-								_this.getfreshData()
-								setTimeout(() => {
-									this.showMessage = false
-								}, 3000)
-
+								console.log(err)
 							}
-						},
-						fail: (err) => {
-							uni.hideLoading()
-							_this.showError = true
-							_this.message = '请求失败'
-							setTimeout(() => {
-								_this.showError = false
-							}, 3000)
-							console.log(err)
-						}
-					});
+						});
+					}else if(currentRemaining < 0){
+						//小于0 提示 
+						this.title3 = '退库数量提醒'
+						this.showFinishConfirmA = true
+						console.log(this.sigleReturn)
+					}
+						
+			
 
 				} else {
 					this.onClose1()
@@ -251,10 +304,238 @@
 
 
 			},
+			onClose2(e) {
+				this.showAssemblyQty2 = false
+			},
+			onClick2(e) {
+				console.log(e)
+				let _this = this
+			
+				if (e.index === 1) {
+			//现在的待装配数量 = 总-装配数量-填退库的数字-报废数量
+			// "totalQuantity": 24,
+			// "quantityUsed": 20,
+			// "remainingQuantity": 1,
+			// "returnQuantity": 3,
+			// "scrapQuantity": 0,
+			// "workshopAreaName": "A8",
+			// "materialCarNo": "L050",
+			// "materialBoxNo": "",
+			// "materialType": 10,
+			// "state": 20
+			this.scrapQuantity = e.currentNum4,
+			this.comments2 = e.comments
+					let currentRemaining = e.totalQuantity - e.quantityUsed - e.currentNum4 - e.returnQuantity
+					console.log(currentRemaining)
+					//通过currentRemaining判断是否出现弹窗
+			if(currentRemaining >=0){
+				//如果大于0，直接发送 ，不提示
+						uni.showLoading({
+							title: '正在确认'
+						})
+						// let url = BaseApi + '/StockReturn/Edit?Mid=' + _this.materialInfo.materialId +
+						// 	'&returnQuantity=' + e.currentNum;
+						let url = BaseApi + '/MaterialScrap';
+							//comments填写退库的备注，后面要加
+						let data={
+							mid:_this.materialInfo2.materialId,
+							scrapQuantity:this.scrapQuantity,
+							comments:this.comments2
+						}
+						console.log(data)
+						console.log(url)
+						uni.request({
+							url: url,
+							method: 'POST',
+							data:data,
+							header: {
+								'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+								'Content-Type': 'application/json;charset=utf-8'
+							},
+							success: (res) => {
+								console.log(res)
+								if (res.data.statusCode !== 200) {
+									uni.hideLoading()
+									_this.message = res.data.message
+									_this.showError = true
+								
+									setTimeout(() => {
+										_this.showError = false
+									}, 3000)
+								} else {
+									uni.hideLoading()
+									this.onClose2()
+									this.showMessage = true
+									_this.getfreshData()
+									setTimeout(() => {
+										this.showMessage = false
+									}, 3000)
+						
+								}
+							},
+							fail: (err) => {
+								uni.hideLoading()
+								_this.showError = true
+								_this.message = '请求失败'
+								setTimeout(() => {
+									_this.showError = false
+								}, 3000)
+								console.log(err)
+							}
+						});						
+				} else if(currentRemaining < 0){
+					//小于0 提示
+					this.title3 = '报废数量提醒'
+					this.showFinishConfirmA = true
+					console.log(this.sigleReturn)
+					
+				}
+			}else{
+				this.onClose2()
+			}
+						
+			
+			
+			},
+			onClickConfirmA(e){
+			if(e.index === 1 && this.showAssemblyQty){
+				//单个 点击确认,发送请求
+					let _this = this
+				this.showFinishConfirmA = false,
+				
+				uni.showLoading({
+					title: '正在确认'
+				})
+				// let url = BaseApi + '/StockReturn/Edit?Mid=' + _this.materialInfo.materialId +
+				// 	'&returnQuantity=' + e.currentNum;
+				let url = BaseApi + '/StockReturn/Edit';
+					//comments填写退库的备注，后面要加
+				let data={
+					mid:_this.materialInfo.materialId,
+					returnQuantity:this.returnQuantity,
+					comments:this.comments
+				}
+				console.log(data)
+				console.log(url)
+				uni.request({
+					url: url,
+					method: 'POST',
+					data:data,
+					header: {
+						'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+						'Content-Type': 'application/json;charset=utf-8'
+					},
+					success: (res) => {
+						console.log(res)
+						if (res.data.statusCode !== 200) {
+							uni.hideLoading()
+							_this.message = res.data.message
+							_this.showError = true
+						
+							setTimeout(() => {
+								_this.showError = false
+							}, 3000)
+						} else {
+							uni.hideLoading()
+							this.onClose1()
+							this.showMessage = true
+							_this.getfreshData()
+							setTimeout(() => {
+								this.showMessage = false
+							}, 3000)
+				
+						}
+					},
+					fail: (err) => {
+						uni.hideLoading()
+						_this.showError = true
+						_this.message = '请求失败'
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						console.log(err)
+					}
+				});
+				
+				this.showAssemblyQty = false
+			}else if(e.index === 1 && this.showAssemblyQty2){
+				//单个 点击确认,发送请求
+					let _this = this
+				this.showFinishConfirmA = false,
+				uni.showLoading({
+					title: '正在确认'
+				})
+				// let url = BaseApi + '/StockReturn/Edit?Mid=' + _this.materialInfo.materialId +
+				// 	'&returnQuantity=' + e.currentNum;
+				let url = BaseApi + '/MaterialScrap';
+					//comments填写退库的备注，后面要加
+				let data={
+					mid:_this.materialInfo2.materialId,
+					scrapQuantity:this.scrapQuantity,
+					comments:this.comments2
+				}
+				console.log(data)
+				console.log(url)
+				uni.request({
+					url: url,
+					method: 'POST',
+					data:data,
+					header: {
+						'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+						'Content-Type': 'application/json;charset=utf-8'
+					},
+					success: (res) => {
+						console.log(res)
+						if (res.data.statusCode !== 200) {
+							uni.hideLoading()
+							_this.message = res.data.message
+							_this.showError = true
+						
+							setTimeout(() => {
+								_this.showError = false
+							}, 3000)
+						} else {
+							uni.hideLoading()
+							this.onClose1()
+							this.showMessage = true
+							_this.getfreshData()
+							setTimeout(() => {
+								this.showMessage = false
+							}, 3000)
+				
+						}
+					},
+					fail: (err) => {
+						uni.hideLoading()
+						_this.showError = true
+						_this.message = '请求失败'
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						console.log(err)
+					}
+				});
+				
+				
+				this.showAssemblyQty2 = false
+			}else if(e.index === 1 && !this.showAssemblyQty  ){
+				//总的
+			this.showFinishConfirmA = false,
+			this.showFinishConfirm = true
+			}
+			else {
+				// 点击取消
+				
+				this.onCloseConfirmA()
+			}
+			
+			},
+			
 			onClickConfirm(e) {
 				let _this = this
 
 				if (e.index === 1) {
+				
 					uni.showLoading({
 						title: '正在确认'
 					})
@@ -280,18 +561,58 @@
 								}, 3000)
 								return
 							} else {
-
+								//在这里调用生产审批流的接口
+     //             let url = BaseApi + '/CreateWorkFlowProcess' ;
+     //             let data = res.data.data;
+				 // console.log(data)
+					// console.log(url)
+					
+					// 	uni.request({
+					// 		url: url,
+					// 		method: 'POST',
+					// 		data:data,
+					// 		header: {
+					// 			'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+					// 			'Content-Type': 'application/json;charset=utf-8'
+					// 		},
+					// 		success: (res) => {
+					// 			console.log(res)
+					// 			uni.hideLoading()
+					// 			if (res.data.statusCode !== 200) {
+					// 				 // console.log('审批流生成成功')
+					// 				_this.message = res.data.messages
+					// 				// _this.showError = true
+					// 				// setTimeout(() => {
+					// 				// 	_this.showError = false
+					// 				// }, 3000)
+					// 				return
+					// 			} else {
+					// 	       console.log('审批流生成成功')
+					// 			}
+									
+					// 		},
+					// 		fail: (err) => {
+					// 			uni.hideLoading()
+					// 			_this.showError = true
+					// 			_this.message = '请求失败'
+					// 			setTimeout(() => {
+					// 				_this.showError = false
+					// 			}, 3000)
+					// 			console.log(err)
+					// 		}
+					// 	})
+							
+					
 								_this.onCloseConfirm()
 
-								this.showMessage = true
-								setTimeout(() => {
-									this.showMessage = false
-								}, 3000)
-								uni.reLaunch({
-									url: '/pages/function/function'
-								})
+								this.show2 = true
+								// setTimeout(() => {
+								// 	this.show2 = false
+								// 	uni.reLaunch({
+								// 		url: '/pages/function/function'
+								// 	})
+								// }, 1500)
 								
-
 							}
 						},
 						fail: (err) => {
@@ -323,6 +644,10 @@
 			},
 			onCloseConfirm() {
 				this.showFinishConfirm = false
+			},
+			onCloseConfirmA(){
+			 this.showFinishConfirmA = false
+			
 			},
 			registerScan() {
 				main.registerReceiver(receiver, filter);
@@ -370,6 +695,7 @@
 								} else {
 									uni.hideLoading()
 									console.log(res.data.data)
+									_this.showScan=false
 									_this.showAssemblyQty = true
 									_this.materialInfo = res.data.data
 								}
@@ -386,13 +712,18 @@
 						});
 
 						// scanDevice.stopScan(); // 停止扫描
-
 					}
 				});
 			},
 			finishAssembly() {
-
-				this.showFinishConfirm = true
+if(this.topData.remainingQuantitys<0){
+	this.title3='结束装配提醒'
+	this.showFinishConfirmA = true
+	this.showFinishConfirm = false
+}else{
+	this.showFinishConfirm = true
+}
+				
 			},
 			scanAssembly() {
 				this.showScan = true
@@ -527,6 +858,51 @@
 				// 	}
 				// })
 			},
+			returnMaterial(e) {
+				uni.showLoading({
+					title: '正在查询'
+				})
+				let _this = this;
+				console.log(e.id)
+				let url = BaseApi + '/GetDetail?Mid=' + JSON.stringify({
+					'Id': e.id
+				});
+				console.log(url)
+				uni.request({
+					url: url,
+					method: 'GET',
+					header: {
+						'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+						'Content-Type': 'application/json;charset=utf-8'
+					},
+					success: (res) => {
+						console.log(res)
+						if (res.data.statusCode !== 200) {
+							uni.hideLoading()
+							_this.message = res.data.message
+							_this.showError = true
+							setTimeout(() => {
+								_this.showError = false
+							}, 3000)
+							return
+						} else {
+							uni.hideLoading()
+							console.log(res.data.data)
+							_this.showAssemblyQty2 = true
+							_this.materialInfo2 = res.data.data
+						}
+					},
+					fail: (err) => {
+						uni.hideLoading()
+						_this.showError = true
+						_this.message = '请求失败'
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						console.log(err)
+					}
+				});
+			},
 			displaySearchBar() {
 				scanDevice.setOutScanMode(1); // 扫描模式=广播
 
@@ -593,7 +969,7 @@
 		align-items: center;
 		justify-content: space-around;
 		color: #9CA2A5;
-		font-size: 26rpx;
+		font-size: 30rpx;
 		margin-top: 24rpx;
 	}
 
@@ -642,8 +1018,9 @@
 	}
 
 	.scan-btn-active {
-		background-color: #00893d;
-		color: #fff;
+		border: #00893d 3rpx solid;
+		background-color: #fff;
+		color: #414546;
 		width: 246rpx;
 		display: flex;
 		align-items: center;
@@ -743,7 +1120,7 @@
 	}
 
 	.tip {
-		z-index: 990;
+		z-index: 1;
 		display: flex;
 		align-items: center;
 		height: 57rpx;

@@ -27,7 +27,7 @@
 			<view class="number-summarize">
 				<view>领料总数 <span style="color: #414546;">{{topData.totalQuantitys}}</span></view>
 				<view>已用数量 <span style="color: #00893d;">{{topData.quantityUseds}}</span></view>
-				<view>剩余数量 <span style="color: #f2b704;">{{topData.remainingQuantitys}}</span></view>
+				<view>剩余数量 <span style="color: #f2b704;">{{topData.remainingQuantitys < 0 ? 0 : topData.remainingQuantitys }}</span></view>
 			</view>
 		</view>
 		<scroll-view class="material-list">
@@ -123,12 +123,21 @@
 					uni.showLoading({
 						title: '正在确认'
 					})
-					let url = BaseApi + '/Materialreturn/SendreturnNumber?Mid=' + _this.materialInfo.materialId +
-						'&quantityUsed=' + e.currentNum;
-					console.log(url)
+					//let url = BaseApi + '/Materialreturn/SendreturnNumber?Mid=' + _this.materialInfo.materialId +
+						//'&quantityUsed=' + e.currentNum;
+					let url = BaseApi + '/Materialreturn/SendreturnNumber';
+					//需要在dialog上面多加两个数字输入框 退库数量，报废数量和已用数量
+					let data = {
+						mid:_this.materialInfo.materialId,
+						quantityUsed:e.currentNum0,
+						returnQuantity:e.currentNum1,
+						scrapQuantity:e.currentNum2
+					};
+					console.log(data)
 					uni.request({
 						url: url,
-						method: 'GET',
+						method: 'POST',
+						data:data,
 						header: {
 							'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
 							'Content-Type': 'application/json;charset=utf-8'
@@ -404,7 +413,7 @@
 		align-items: center;
 		justify-content: space-around;
 		color: #9CA2A5;
-		font-size: 26rpx;
+		font-size: 30rpx;
 		margin-top: 24rpx;
 	}
 

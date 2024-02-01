@@ -23,17 +23,20 @@
 				<uni-icons type="search" color="#646464" size="20" style="margin-right: 6rpx;"></uni-icons>
 				{{materialCode}}
 			</view>
-			<!-- <view class="number-summarize">
-				<view>领料总数 <span style="color: #414546;">{{topData.totalQuantitys}}</span></view>
-				<view>已用数量 <span style="color: #00893d;">{{topData.quantityUseds}}</span></view>
-				<view>剩余数量 <span style="color: #f2b704;">{{topData.remainingQuantitys}}</span></view>
-			</view> -->
+			<view class="number-summarize">
+				<view>领料总数 <span style="color: #414546;">1</span></view>
+				<view>已用数量 <span style="color: #00893d;">1</span></view>
+				<view>剩余数量 <span style="color: #f2b704;">1</span></view>
+			</view>
 		</view>
 		<scroll-view class="material-list">
-			<material-list :materialList="materialList" cardtitle="退库单"></material-list>
+			<material-list :materialList="materialList"   @returnMaterial="returnMaterial"  cardtitle="退库单"></material-list>
 
 
 		</scroll-view>
+		<view   @click="openHistory()"  class="process">
+		<process-card :processlist="processlist"></process-card>
+		</view>
 
 		<view class="link-top" @click="linkToTop" v-if="!isShowSearch">
 
@@ -49,6 +52,9 @@
 		<scan-dialog :show="showError" imgUrl="Error.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
 			:padding="76" :iconWidth="92" :text="message" maskClosable>
 		</scan-dialog>
+		
+			<history-list :switchHistory='switchHistory'  @sonmsg="openMsg" ></history-list>
+		
 	</view>
 </template>
 
@@ -83,13 +89,32 @@
 				showError: false,
 				message: '',
 				materialInfo: {},
-
+				switchHistory:false,
+				historyflag:false,
+processlist :[
+	{
+		itemName:'提交审批',
+		approvalState:30
+	},{
+		itemName:'装配经理审批',
+		approvalState:20
+	},{
+		itemName:'设计人员审批',
+		approvalState:10
+	}
+	,{
+		itemName:'入库签收',
+		approvalState:10
+	}
+]
 			};
 		},
 		onLoad(options) {
+			console.log(options);
 			console.log(JSON.parse(options.topData))
 			this.Id = JSON.parse((options.ListData)).id;
 			this.materialList = JSON.parse((options.ListData)).data
+			console.log(this.materialList)
 			this.topData = JSON.parse(options.topData)
 		},
 		onHide() {
@@ -111,7 +136,7 @@
 				uni.showLoading({
 					title: '正在搜索'
 				})
-				let url = BaseApi + '/StockReturnDocument/Search?Id=' + this.Id + '&Info=' + e.detail.value;
+				let url = BaseApi + '/StockReturnDocument/search?Id=' + this.Id + '&Info=' + e.detail.value;
 				console.log(url)
 				uni.request({
 					url: url,
@@ -158,11 +183,73 @@
 				this.isShowSearch = true
 
 			},
+				
+			openHistory(){
+				this.switchHistory = true;
+			
+				// if(this.historyflag === false){
+				// 	this.switchHistory = true;
+				// }
+				
+			},
 			linkToTop() {
 				console.log('锚链接')
 				uni.pageScrollTo({
 					scrollTop: 0,
 					duration: 100,
+				});
+			},
+			openMsg(msg) {
+						
+						this.historyflag=msg
+						// console.log(this.historyflag)
+						if(this.historyflag === false){
+							this.switchHistory = false;
+						}
+				},
+			returnMaterial(e) {
+				uni.showLoading({
+					title: '正在查询'
+				})
+				let _this = this;
+				console.log(e.id)
+				let url = BaseApi + '/GetDetail?Mid=' + JSON.stringify({
+					'Id': e.id
+				});
+				console.log(url)
+				uni.request({
+					url: url,
+					method: 'GET',
+					header: {
+						'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+						'Content-Type': 'application/json;charset=utf-8'
+					},
+					success: (res) => {
+						console.log(res)
+						if (res.data.statusCode !== 200) {
+							uni.hideLoading()
+							_this.message = res.data.message
+							_this.showError = true
+							setTimeout(() => {
+								_this.showError = false
+							}, 3000)
+							return
+						} else {
+							uni.hideLoading()
+							console.log(res.data.data)
+							_this.showAssemblyQty = true
+							_this.materialInfo = res.data.data
+						}
+					},
+					fail: (err) => {
+						uni.hideLoading()
+						_this.showError = true
+						_this.message = '请求失败'
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						console.log(err)
+					}
 				});
 			}
 		}
@@ -171,7 +258,7 @@
 
 <style lang="scss">
 	.search-bar {
-		height: 110rpx;
+		height: 170rpx;
 		position: fixed;
 		top: 108rpx;
 		left: 0;
@@ -217,7 +304,7 @@
 		align-items: center;
 		justify-content: space-around;
 		color: #9CA2A5;
-		font-size: 26rpx;
+		font-size: 30rpx;
 		margin-top: 24rpx;
 	}
 
@@ -243,10 +330,10 @@
 		position: absolute;
 		left: 0;
 		right: 0;
-		top: 216rpx;
+		top: 426rpx;
 		padding-top: 20rpx;
 		overflow: auto;
-		// z-index: -1;
+		z-index: 1;
 	}
 
 
@@ -301,4 +388,16 @@
 		width: 580rpx;
 		font-size: 28rpx;
 	}
+	.process{
+		z-index: 1;
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 277rpx;
+		
+		overflow: auto;
+		
+	}
+	
+
 </style>

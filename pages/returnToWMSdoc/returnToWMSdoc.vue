@@ -307,7 +307,7 @@
 		align-items: center;
 		justify-content: space-around;
 		color: #9CA2A5;
-		font-size: 26rpx;
+		font-size: 30rpx;
 		margin-top: 24rpx;
 	}
 

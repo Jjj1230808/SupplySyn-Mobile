@@ -27,7 +27,7 @@
 			<view class="number-summarize">
 				<view>领料总数 <span style="color: #414546;">{{topData.totalQuantitys}}</span></view>
 				<view>已用数量 <span style="color: #00893d;">{{topData.quantityUseds}}</span></view>
-				<view>剩余数量 <span style="color: #f2b704;">{{topData.remainingQuantitys}}</span></view>
+				<view>剩余数量 <span style="color: #f2b704;">{{topData.remainingQuantitys<0 ? 0 :topData.remainingQuantitys }}</span></view>
 			</view>
 		</view>
 		<scroll-view class="material-list">
@@ -35,18 +35,23 @@
 		</scroll-view>
 		<view class="action-buttons" v-if="!isShowSearch">
 			<button @click="returnMaterial">
-				<image style="width: 36rpx;height: 36rpx;" src="../../static/img/assignment_return.svg">
-				</image>
+				
+				
 				物料退回
 			</button>
+			<button hover-class="none" @click="scrapMaterial">
+				
+				
+				物料报废
+			</button>
 			<button @click="finishAssembly">
-				<image style="width: 36rpx;height: 36rpx;" src="../../static/img/icon-wrapper.svg">
-				</image>
+				
+		
 				装配完成
 			</button>
-			<button @click="scanAssembly">
-				<image style="width: 36rpx;height: 36rpx;" src="../../static/img/qr_code.svg">
-				</image>
+			<button hover-class="none" @click="scanAssembly">
+				
+		
 				扫码装配
 			</button>
 		</view>
@@ -67,9 +72,45 @@
 		<fui-dialog :show="showReturnConfirm" title="物料退回" content="是否发起物料退回？" :buttons="buttons" maskClosable
 			@click="onClickReturnConfirm" @close="onCloseReturnConfirm">
 		</fui-dialog>
+		<fui-dialog :show="showScrapConfirm" title="物料报废" content="是否发起物料报废？" :buttons="buttons" maskClosable
+			@click="onClickScrapConfirm" @close="onCloseScrapConfirm">
+		</fui-dialog>
 		<scan-dialog :show="showError" imgUrl="Error.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
 			:padding="76" :iconWidth="92" :text="message" maskClosable>
 		</scan-dialog>
+		<!-- <view v-show="show2" class="mark">
+		<view  class="location-choose">
+			
+		<view class="choose-title" >
+				<button style="height: 100rpx;background-color: #fff;color: black;font-size: 35rpx;">剩余物料确认</button>
+		</view>
+			<view style="height: 280rpx; margin-bottom: 20rpx;">
+				<view class="tipsA">
+					系统计算无剩余物料，是否要手动录入剩余物料，以创建退库单？
+				</view>
+				<view class="tipsB">
+			
+						<image src="../../static/img/tips-logo.svg" 
+						style="width: 35rpx;height: 45rpx;margin-top:5rpx;"
+						 mode=""></image>
+					
+					<view class="">
+						手动修改数据生成的退库单和报废单需要装配经理审批
+					</view>
+				</view>
+			</view>
+			<view style="height: 100rpx;" class="createNo">
+				<button @click="createNo()" style="color: white;background-color: #00893d;border-radius: 15rpx;">不创建</button>
+			</view> -->
+			<!-- <view class="createHandler"> -->
+				<!-- <button class="createHandler" @click="createHandler()" >手动创建退库单</button> -->
+			<!-- </view> -->
+		<!-- <view style="height: 100rpx;" class="closec">
+			<button @click="createNo()" style="color: #646464;border-radius: 15rpx;">取消</button>
+		</view> -->
+			
+		<!-- </view>
+	</view> -->
 	</view>
 </template>
 
@@ -143,7 +184,6 @@
 		data() {
 			return {
 				showReturnConfirm: false,
-
 				isShowSearch: false,
 				materialCode: '',
 				showScan: false,
@@ -158,18 +198,22 @@
 				}],
 				showMessage: false,
 				showFinishConfirm: false,
+				showScrapConfirm:false,
 				materialList: [],
 				topData: {},
 				Id: '',
 				showError: false,
 				message: '',
-				materialInfo: {}
+				materialInfo: {},
+				show2:false
 			};
 		},
 		onLoad(options) {
 			this.Id = JSON.parse((options.ListData)).id;
 			this.materialList = JSON.parse((options.ListData)).data
 			this.topData = JSON.parse((options.topData))
+		console.log('onLoad');
+		
 
 		},
 		onHide() {
@@ -180,6 +224,8 @@
 		},
 		onShow() {
 			scanDevice.setOutScanMode(0); // 扫描模式=广播
+			this.getfreshData();
+			console.log('onShow');
 			this.initScan()
 			this.registerScan()
 		},
@@ -203,12 +249,18 @@
 					uni.showLoading({
 						title: '正在确认'
 					})
-					let url = BaseApi + '/Assemble/AssembleNumber?Mid=' + _this.materialInfo.materialId +
-						'&quantityUsed=' + e.currentNum;
+					// let url = BaseApi + '/Assemble/AssembleNumber?Mid=' + _this.materialInfo.materialId +
+					// 	'&quantityUsed=' + e.currentNum;
+					let url = BaseApi + '/Assemble/AssembleNumber';
+					let data = {
+						mid:_this.materialInfo.materialId,
+						quantityUsed:e.currentNum
+					}
 					console.log(url)
 					uni.request({
 						url: url,
-						method: 'GET',
+						method: 'POST',
+						data:data,
 						header: {
 							'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
 							'Content-Type': 'application/json;charset=utf-8'
@@ -262,7 +314,7 @@
 			onClickConfirm(e) {
 				let _this = this
 
-				if (e.index === 1) {
+				if (e.index === 1 ) {
 					uni.showLoading({
 						title: '正在确认'
 					})
@@ -316,7 +368,7 @@
 					});
 					// this.onCloseConfirm()
 
-				} else {
+				} else  {
 					this.onCloseConfirm()
 				}
 			},
@@ -375,9 +427,13 @@
 						return
 					} else {
 						uni.hideLoading()
-						uni.redirectTo({
-							url: `/pages/startToAssembly/startToAssembly?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
-						})
+						console.log(res1.data.data,res2.data.data);
+						// uni.redirectTo({
+						// 	url: `/pages/startToAssembly/startToAssembly?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
+						// })
+						this.Id = res1.data.data.id;
+						this.materialList = res1.data.data.data
+						this.topData = res2.data.data
 					}
 					// 在这里写你的逻辑
 				}).catch(err => {
@@ -510,6 +566,7 @@
 								} else {
 									uni.hideLoading()
 									_this.showAssemblyQty = true
+										_this.showScan = false;
 									_this.materialInfo = res.data.data
 								}
 							},
@@ -529,12 +586,8 @@
 				});
 			},
 			scanAssembly() {
-				this.showScan = true
+				this.showScan = true;
 				scanDevice.setOutScanMode(0); // 扫描模式=广播
-				// scanDevice.startScan()
-				// setTimeout(() => {
-				// 	this.showScan = false
-				// }, 3000)
 			},
 			finishAssembly() {
 				this.showFinishConfirm = true
@@ -555,7 +608,7 @@
 						title: '正在查询'
 					})
 
-					let url1 = BaseApi + '/Basedata/Listdata?Id=' + this.Id
+					let url1 = BaseApi + '/GetMaterialFallbackDataSources?Id=' + this.Id
 					let url2 = BaseApi + '/Basedata/Topdata?Id=' + this.Id
 					console.log(uni.getStorageSync("scToken"))
 
@@ -632,6 +685,96 @@
 					this.showReturnConfirm = false
 				}
 			},
+			onClickScrapConfirm(e) {
+				if (e.index === 1) {
+			
+			
+					this.showScrapConfirm = false
+					let _this = this
+					uni.showLoading({
+						title: '正在查询'
+					})
+			
+					let url1 = BaseApi + '/GetMaterialScrapDataSources?Id=' + this.Id
+					let url2 = BaseApi + '/Basedata/Topdata?Id=' + this.Id
+					console.log(uni.getStorageSync("scToken"))
+			
+					let request1 = new Promise((resolve, reject) => {
+						uni.request({
+							url: url1,
+							method: 'GET',
+							header: {
+								'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+								'Content-Type': 'application/json;charset=utf-8'
+							},
+							success: (res) => {
+								resolve(res);
+							},
+							fail: (err) => {
+								reject(err);
+							}
+						});
+					});
+			
+					let request2 = new Promise((resolve, reject) => {
+						uni.request({
+							url: url2,
+							method: 'GET',
+							header: {
+								'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+								'Content-Type': 'application/json;charset=utf-8'
+							},
+							success: (res) => {
+								resolve(res);
+							},
+							fail: (err) => {
+								reject(err);
+							}
+						});
+					});
+			
+					Promise.all([request1, request2]).then(([res1, res2]) => {
+						console.log(res1);
+						console.log(res2)
+						if (res1.data.statusCode !== 200) {
+							uni.hideLoading()
+							_this.message = res1.data.message
+							_this.showError = true
+							setTimeout(() => {
+								_this.showError = false
+							}, 3000)
+							return
+						} else if (res2.data.statusCode !== 200) {
+							uni.hideLoading()
+							_this.message = res2.data.message
+							_this.showError = true
+							setTimeout(() => {
+								_this.showError = false
+							}, 3000)
+							return
+						} else {
+							uni.hideLoading()
+							uni.navigateTo({
+								url: `/pages/materialScrap/materialScrap?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
+							})
+						}
+						// 在这里写你的逻辑
+					}).catch(err => {
+						this.showError = true
+						this.message = '请求失败'
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						console.log(err)
+						// 处理请求失败的情况
+					});
+				} else {
+					this.showScrapConfirm = false
+				}
+			},
+			onCloseScrapConfirm(){
+				this.showScrapConfirm = false
+			},
 			enterMaterialCode(e) {
 				console.log(e)
 				let _this = this;
@@ -693,6 +836,9 @@
 				this.isShowSearch = true
 
 			},
+			scrapMaterial(){
+				this.showScrapConfirm = true
+			},
 			linkToTop() {
 				console.log('锚链接')
 				uni.pageScrollTo({
@@ -700,7 +846,11 @@
 					duration: 100,
 				});
 			}
+		
+	
 		}
+
+	
 	}
 </script>
 
@@ -750,7 +900,7 @@
 		align-items: center;
 		justify-content: space-around;
 		color: #9CA2A5;
-		font-size: 26rpx;
+		font-size: 30rpx;
 		margin-top: 24rpx;
 	}
 
@@ -785,36 +935,66 @@
 	}
 
 	.action-buttons>button {
-		width: 213rpx;
-		height: 90rpx;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border-radius: 10rpx;
-		font-size: 28rpx;
-		outline: none;
+		
+		width: 25%;
+		height: 100%;
+		margin: unset;
+		padding: unset;
+	border: #fff;
+	
 	}
 
-	.action-buttons>button>image {
-		margin-right: 6rpx;
-	}
+	
+.action-buttons>button:nth-child(1) {
+		margin: unset;
+		padding: unset;
+			
+		background-color: #fff;
+		color: #646464;
+		box-sizing: border-box;
 
-	.action-buttons>button:nth-child(1) {
-		border: 2px solid #e62c27;
+	}
+	.action-buttons>button:nth-child(2) {
+		margin: unset;
+		padding: unset;
+			
 		background-color: #fff;
 		color: #e62c27;
 		box-sizing: border-box;
 
 	}
 
-	.action-buttons>button:nth-child(2) {
-		border: 2px solid #00893d;
+	.action-buttons>button:nth-child(3) {
+		margin: unset;
+		padding: unset;
+		
 		background-color: #fff;
 		color: #00893d;
 		box-sizing: border-box;
 	}
+	button {
+	    margin: unset;
+	    padding: unset;
+		background-color: white;
+		border-radius: 0%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: 600;
+	}
+	button:after {
+	
+		border-top:none;
+		border-bottom: none;
+border-right:1rpx solid #ced5da;
+border-left:1rpx solid #ced5da;
+		border-radius: 0%;
+	font-weight: 600;
+	}
 
-	.action-buttons>button:nth-child(3) {
+	.action-buttons>button:nth-child(4) {
+		margin: unset;
+		padding: unset;
 		background-color: #00893d;
 		color: #fff;
 	}
@@ -882,4 +1062,104 @@
 		width: 580rpx;
 		font-size: 28rpx;
 	}
+	.location-choose{
+		border-radius: 15rpx;
+		display: flex;
+		flex-direction: column;
+	    margin: 320rpx 80rpx;
+			width: 580rpx;
+			height: 690rpx;
+			
+			background-color: white;
+		 position: fixed;
+		 z-index: 1000;
+		 top: 0;
+		 right: 0;
+		 left: 0;
+		 bottom: 0;
+padding: 0 30rpx 0 30rpx;
+
+		 // transition-property: all;
+		 // transition-timing-function: ease-in;
+		 // transition-duration: 0.2s;
+		 // display: flex;
+		 // transform: scale3d(1, 1, 0);
+		 // visibility: hidden;
+		}
+		.choose-title{
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			font-size: 35rpx;
+	
+			border-radius: 15rpx;
+		}
+		.choose-title>button{
+			border: unset;
+			padding: unset;
+		}
+		.choose-title>button:after {
+			border: unset;
+		
+		}
+			.createNo {
+				margin-bottom: 20rpx;
+						
+			}
+			// .createHandler{
+			// 	margin-bottom: 20rpx;
+			// 			background-color: blue;
+			// }
+		.createNo>button:after {
+			border: unset;
+					
+		}
+		// .createHandler>button{
+		// 	border: unset;
+		// 	padding: unset;
+		// }
+		.createHandler {
+		border: #00893d 2rpx solid;
+		
+		border-radius: 15rpx;
+		margin-bottom: 30rpx;
+		}
+		.closec{
+			
+		}
+		.closec>button:after {
+			border: unset;
+		
+		}
+		.tipsA{
+			height: 114rpx;
+			font-size: 32rpx;
+			color: #646464;
+			
+		}
+		.tipsB{
+			font-size: 30rpx;
+			height: 114rpx;
+			width: 100%;
+			color: #1d9bb2;
+			background-color: rgba(29, 155, 178, 0.10);
+			padding: 20rpx;
+			display: flex;
+			flex-direction: row;
+		}
+		
+		.mark{
+		   	 
+		   	position:absolute;
+		   	height: 100%; 
+		   	color: #fff;
+		   	background: rgba(0, 0, 0, 0.5); 
+		   	left: 0%;
+		   	right: 0%;
+		   top: 0%;
+		   	font-size: 26rpx;
+		   	text-align: center;
+		   	box-shadow: 2px -3px 100px -5px  #FFFFFF;
+		   
+		   }
 </style>

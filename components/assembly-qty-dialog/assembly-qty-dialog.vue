@@ -7,13 +7,16 @@
 				<image src="../../static/img/watch_later.svg" style="width: 28rpx;height: 28rpx;margin-right: 8rpx;"
 					mode="">
 				</image>
-				<view style="margin-right: 8rpx;color: #646464;font-size: 24rpx;">待装配</view>
-				<view style="color: #F2B704;font-size: 24rpx;">{{materialInfo.remainingQuantity}}</view>
+				<view v-if="title!=='报废'" style="margin-right: 8rpx;color: #646464;font-size: 24rpx;">待装配</view>
+				<view v-if="title==='报废'" style="margin-right: 8rpx;color: #646464;font-size: 24rpx;">待处理</view>
+				<view  style="color: #F2B704;font-size: 24rpx;">{{materialInfo.remainingQuantity<0? 0 :materialInfo.remainingQuantity}}</view>
+				
+				
 			</view>
 			<view class="fui-dialog__body">
 				<view class="material-text">
 					<view>物料名称</view>
-					<view>{{materialInfo.description}}</view>
+					<view>{{materialInfo.materialName}}</view>
 				</view>
 				<view class="material-text">
 					<view>物料编号</view>
@@ -41,14 +44,38 @@
 					<view>报废数量</view>
 					<view>{{materialInfo.scrapQuantity}}</view>
 				</view>
-				<view  v-if="title!=='物料退回'"  class="assembly-num">
+				<view  v-if="title==='物料退回'"  class="three-numbox">
+					<view class="assembly-num" style="margin-bottom: 10rpx;">
+						<view >本次退回数量</view>
+						<cc-numbox :maxNum="materialInfo.quantityUsed" @change="changeNum0" ></cc-numbox>
+					</view>
+					<view class="assembly-num" style="margin-bottom: 10rpx;">
+						<view>本次退库退回</view>
+						<cc-numbox :maxNum="materialInfo.returnQuantity" @change="changeNum1"></cc-numbox>
+					</view>
+					<view class="assembly-num" style="margin-bottom: 10rpx;">
+						<view>本次报废退回</view>
+						<cc-numbox :maxNum="materialInfo.scrapQuantity" @change="changeNum2"></cc-numbox>
+					</view>
+				</view>
+				<view  v-if="title ==='选择装配数量'"  class="assembly-num">
 					<view>{{numText}}</view>
 					<cc-numbox :maxNum="materialInfo.remainingQuantity" @change="changeNum"></cc-numbox>
 				</view>
-				<view  v-if="title==='物料退回'"  class="assembly-num">
+				<!-- 退库 实际退库数量 覆盖操作 默认数量为系统计算的退库 -->
+				<view  v-if="title==='退库'"   class="assembly-num">
 					<view>{{numText}}</view>
-					<cc-numbox :maxNum="materialInfo.quantityUsed" @change="changeNum"></cc-numbox>
+					<cc-numbox  @change="changeNum3" :numbercover="isSetcover" :coverNum="materialInfo.returnQuantity"></cc-numbox>
 				</view>
+				<!-- 报废 数量 覆盖操作 默认数量为系统计算的报废 -->
+				<view  v-if="title==='报废'"   class="assembly-num">
+					<view>{{numText}}</view>
+					<cc-numbox  @change="changeNum4" :numbercover="isSetcover" :coverNum="materialInfo.scrapQuantity"></cc-numbox>
+				</view>
+			</view>
+			<!-- //备注文本框 -->
+			<view v-if="title ==='退库' || title ==='报废' " style="padding: 0rpx 30rpx 30rpx 30rpx;">
+			<textarea class="comment" v-model="comments"  placeholder="备注(可选)" />
 			</view>
 			<view class="fui-dialog__footer">
 				<text v-for="(item,index) in buttons" :key="index" :style="{color:item.color || '#333333'}"
@@ -77,6 +104,7 @@
 				type: String,
 				default: '本次装配数量'
 			},
+			
 			show: {
 				type: Boolean,
 				default: false
@@ -129,11 +157,41 @@
 			let isNvue = false;
 			// #ifdef APP-NVUE
 			isNvue = true;
+			
 			// #endif
+			//remainingQuantity：currentNum，
+			// quantityUsed:currentNum0,
+			// 本次退库数量 returnQuantity:currentNum1,
+			// scrapQuantity:currentNum2，
+			//实际退库数量：currentNum3
+			
+			
+			
+			// "totalQuantity": 24,
+			// "quantityUsed": 20,
+			// "remainingQuantity": 1,
+			// "returnQuantity": 3,
+			// "scrapQuantity": 0,
+			// "workshopAreaName": "A8",
+			// "materialCarNo": "L050",
+			// "materialBoxNo": "",
+			// "materialType": 10,
+			// "state": 20
 			return {
 				visible: false,
 				isNvue: isNvue,
-				currentNum: 1
+				currentNum: 0,
+				currentNum0: 0,
+				currentNum1:0,
+				currentNum2: 0,
+				currentNum3:0,
+				currentNum4:0,
+				isSetcover: true,
+				comments:''
+				
+				
+				
+				
 			}
 		},
 		// #ifdef APP-NVUE
@@ -155,11 +213,42 @@
 				console.log(num)
 				this.currentNum = num
 			},
+			changeNum0(num) {
+				console.log(num)
+				this.currentNum0 = num
+			},
+			changeNum1(num) {
+				console.log(num)
+				this.currentNum1 = num
+			},
+			changeNum2(num) {
+				console.log(num)
+				this.currentNum2 = num
+			},
+			changeNum3(num) {
+				console.log(num)
+				this.currentNum3 = num
+			},
+			changeNum4(num) {
+				console.log(num)
+				this.currentNum4 = num
+			},
 			handleClick(index) {
 				this.$emit('click', {
 					index,
 					...this.buttons[index],
-					currentNum: this.currentNum
+					currentNum: this.currentNum,
+					currentNum0: this.currentNum0,
+					currentNum1: this.currentNum1,
+					currentNum2: this.currentNum2,
+					currentNum3: this.currentNum3,
+					currentNum4: this.currentNum4,
+					comments:this.comments,
+					totalQuantity:this.materialInfo.totalQuantity,
+					quantityUsed:this.materialInfo.quantityUsed,
+					remainingQuantity:this.materialInfo.remainingQuantity,
+					returnQuantity:this.materialInfo.returnQuantity,
+					scrapQuantity:this.materialInfo.scrapQuantity
 				});
 			},
 			maskClose() {
@@ -392,6 +481,10 @@
 		justify-content: center;
 		margin: auto;
 	}
+		
+	.three-numbox{
+		background-color: #ebeef0;
+	}
 
 	.assembly-num {
 		display: flex;
@@ -403,5 +496,11 @@
 		margin-right: 10rpx;
 		color: #9CA2A5;
 		font-size: 26rpx;
+	}
+	.comment{
+		width: 100%;
+		padding: 20rpx;
+		max-height: 160rpx;
+		border: #ced5da 2rpx solid;
 	}
 </style>
