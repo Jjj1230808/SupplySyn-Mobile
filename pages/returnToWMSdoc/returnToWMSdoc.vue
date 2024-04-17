@@ -46,27 +46,7 @@
 						</view>
 					</view>
 				</view>
-				<view class="material-qty">
-					<view>
-						<view>领料数量</view>
-						<view style="color: #414546">4</view>
-						<span></span>
-					</view>
-					<view>
-						<view>装配数量</view>
-						<view style="color: #00893d;">2</view>
-						<span></span>
-					</view>
-					<view>
-						<view>退库数量</view>
-						<view>2</view>
-						<span></span>
-					</view>
-					<view>
-						<view>报废数量</view>
-						<view>0</view>
-					</view>
-				</view>
+				
 				<view class="material-action">
 					<view>
 						<image src="../../static/img/check_circle.svg"
@@ -242,9 +222,7 @@
 			scanAssembly() {
 				this.showAssemblyQty = true
 				// this.showScan = true
-				// this.initScan()
-				// this.registerScan()
-				// scanDevice.startScan()
+				
 				// setTimeout(() => {
 				// 	this.showScan = false
 				// }, 3000)
@@ -307,7 +285,7 @@
 		align-items: center;
 		justify-content: space-around;
 		color: #9CA2A5;
-		font-size: 26rpx;
+		font-size: 30rpx;
 		margin-top: 24rpx;
 	}
 

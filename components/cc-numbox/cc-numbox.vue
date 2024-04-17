@@ -2,13 +2,18 @@
 	<view class="numBox">
 		<view class="ccMyNumBox">
 			<text @click="minus">
-				<image v-if="num===1" src="../../static/img/mins-disable.svg"
+				<image v-if="num<=0" src="../../static/img/mins-disable.svg"
 					style="width: 32rpx;height: 32rpx;margin-top: 14rpx;" mode=""></image>
-				<image v-if="num>1" src="../../static/img/mins.svg"
+				<image v-if="num>0" src="../../static/img/mins.svg"
 					style="width: 32rpx;height: 32rpx;margin-top: 14rpx;" mode="">
 				</image>
 			</text>
-			<view>{{num}}</view>
+			<!-- <view  >{{num}}</view> -->
+			<input 
+ style="width: 60rpx;border-left: 2rpx solid #ced5da;border-right: 2rpx solid #ced5da; color: #000;"
+				id="searchInput" ref="searchInput" v-model="num" type="number"   >
+			<!-- <textarea style="width: 30rpx;height: 30rpx;" input={{num}} ></textarea> -->
+			<!-- <view v-if="numbercover">123</view> -->
 			<text @click="add">
 				<image v-if="num>=maxNum" src="../../static/img/add.svg"
 					style="width: 32rpx;height: 32rpx;margin-top: 14rpx;" mode="">
@@ -25,21 +30,65 @@
 	export default {
 		data() {
 			return {
-				num: 1
+				num: 0
 			}
 		},
 		created() {
-this.num = 1
+			if (this.numbercover) {
+				this.num = this.coverNum
+				this.$emit('change', this.num)
+			} 
+			else if(this.maxNum === 0){
+				this.num = 0
+				this.$emit('change', this.num)
+			}
+			else {
+				this.num = 0
+					this.$emit('change', this.num)
+			}
+
+		},
+		watch: {
+			num(newValue, oldValue) {
+						setTimeout(()=>{
+				console.log(newValue, oldValue);
+			
+					if (newValue < 0) {
+							uni.showToast({
+								title: '数量不能小于0',
+								'icon': 'none'
+							});
+							this.num = 0
+						this.$emit('change', this.num)
+						}else if(newValue > this.maxNum ){
+							uni.showToast({
+								title: '数量不能大于存量',
+								'icon': 'none'
+							});
+							console.log('maxnumnnnnnnn');
+					this.num =this.maxNum
+							this.$emit('change', this.num)
+						}
+						// else{
+						// 	this.num =newValue
+						// 	console.log(newValue);
+						// 		//this.$emit('change', this.num)
+						// }
+						
+				},1000)
+				this.$emit('change', this.num)
+			}
 		},
 
-
 		methods: {
+
 			minus() {
-				if (this.num == 1) {
+				if (this.num === 0) {
 					uni.showToast({
-						title: '数量不能小于1',
+						title: '数量不能小于0',
 						'icon': 'none'
 					});
+					
 					return;
 				}
 				this.num--
@@ -71,6 +120,14 @@ this.num = 1
 				type: Boolean,
 				default: false
 			},
+			numbercover: {
+				type: Boolean,
+				default: false
+			},
+			coverNum: {
+				type: [Number, String],
+				default: 9999999999
+			}
 		}
 	}
 </script>
@@ -87,6 +144,7 @@ this.num = 1
 		border: 2rpx solid #ced5da;
 		font-size: 30rpx;
 		box-sizing: border-box;
+		background-color: white;
 	}
 
 	.ccMyNumBox text {

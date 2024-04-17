@@ -1,12 +1,15 @@
 <template>
 	<view class="container">
 		<view class="tool-left">
-			<view class="example-body" v-show="isCanBack">
+			<view style="transform: translateX(20rpx);" class="example-body" v-show="isCanBack">
 				<button @click="backToLastPage" class="toolbtn">
 					<uni-icons type="back" color="#646464" size="24"></uni-icons>
 				</button>
 
 			</view>
+			<fui-dialog :show="show" title="返回" content="当前表单尚未处理完成,确认返回？" :buttons="buttons2" maskClosable @click="onClick"
+								@close="onClose">
+							</fui-dialog>
 			<!-- 
 			<view class="example-body">
 				<button @click="isToIndex" class="toolbtn">
@@ -36,7 +39,7 @@
 				{{userName}}
 			</view>
 		</view>
-		<view class="tool-right" @click="isLogOut" v-if="!userName">
+		<view class="tool-right" @click="isLogOut" v-if="!userName && text">
 			<view class="text-icon">
 				<image style="width: 32rpx;margin-top: 10rpx;color: #414546;"
 					src="../../static/img/precision_manufacturing.svg">
@@ -46,6 +49,7 @@
 				{{text}}
 			</view>
 		</view>
+		
 	</view>
 
 </template>
@@ -61,7 +65,14 @@
 					text: '取消',
 					color: '#ccc'
 				}, {
-					text: '确定',
+					text: '确认',
+					color: '#00893d'
+				}],
+				buttons2: [{
+					text: '取消',
+					color: '#ccc'
+				}, {
+					text: '仍要返回',
 					color: '#00893d'
 				}]
 			};
@@ -91,16 +102,19 @@
 		},
 		methods: {
 			backToLastPage() {
-				console.log('返回首页')
-				uni.navigateBack()
+				if(this.title === "报废签收" || this.title === "入库签收" || this.title === "开始装配" ){
+					this.show = true
+				}else{
+					console.log('返回首页')
+					uni.navigateBack()
+				}
+			
 			},
 			onClick(e) {
 				console.log(e)
 				if (e.index == 1) {
 
-					uni.reLaunch({
-						url: '/pages/function/function'
-					})
+				uni.navigateBack()
 				}
 				this.onClose()
 			},
@@ -228,7 +242,7 @@
 			margin: auto;
 			height: 108.33rpx;
 			line-height: 108.33rpx;
-			font-size: 32rpx;
+			font-size: 34rpx;
 			z-index: -1;
 			font-weight: 700;
 			color: #646464;

@@ -5,7 +5,9 @@
 			<view class="menu-items" v-for="(item,index) in menuList">
 				<view class="menu-title">{{item.title}}</view>
 				<view class="menu-item-container">
-					<view class="menu-item" v-for="(childItem,index) in item.menuItems" @click="linkRequest(childItem)">
+					<!-- <view class="menu-item" v-for="(childItem,index) in item.menuItems" @click="linkRequest(childItem)"> -->
+					<view class="menu-item" v-for="(childItem,index) in item.menuItems"
+						@click="showLocationc(childItem)">
 						<image :src="'../../static/img/'+childItem.image+'.svg'" mode="widthFix"></image>
 						<view class="menu-text">{{childItem.text}}</view>
 					</view>
@@ -44,11 +46,29 @@
 			</view>
 		</view> -->
 		<scan-dialog :show="show1" v-on:close="closeMask" :outWidth="420" :outHeight="280" :padding="50"
-			:iconWidth="120" :iconHeight="120">
+			:iconWidth="120" :iconHeight="120" >
 		</scan-dialog>
 		<scan-dialog :show="showError" imgUrl="Error.svg" :iconHeight="92" :outWidth="300" :outHeight="300"
 			:padding="76" :iconWidth="92" :text="message" maskClosable>
 		</scan-dialog>
+		<view v-show="show2" class="mark">
+			<view class="location-choose">
+				<view class="choose-title">
+
+
+					<button style="color:black;font-size: 38rpx;">选择定位方式</button>
+				</view>
+				<view style="height: 100rpx;">
+					<button @click="linkRequest()" style="color: green;">扫描二维码</button>
+				</view>
+				<view style="height: 100rpx;" class="">
+					<button @click="handlerChoose()" style="color: green;">手动选择</button>
+				</view>
+				<view style="height: 100rpx;" class="">
+					<button @click="closec()" style="color: #646464;">取消</button>
+				</view>
+			</view>
+		</view>
 	</view>
 
 </template>
@@ -129,6 +149,7 @@
 				// currentTen: '',
 				// range: [],
 				show1: false,
+				show2: false,
 				userName: '',
 				// placeHolder: '点击此处切换Tenant',
 				// adAccount: '',
@@ -163,21 +184,41 @@
 							router: '/pages/reprintLabel/reprintLabel'
 						},
 						{
-							text: '物料退库',
-							image: 'back-list',
-							router: '/pages/returnToWMS/returnToWMS'
+							//需要换页面
+							text: '物料报废',
+							image: 'material-scrap',
+							router: '/pages/materialScrap/materialScrap'
 						}
 					]
 				}, {
 					title: '单据管理',
 					menuItems: [{
 						text: '退库单',
-						image: 'back-list',
+						image: 'returnwms-doc',
 						router: '/pages/returnList/returnList'
-					}, ]
+					}, {
+						text: '报废单',
+						image: 'scrap-doc',
+						router: '/pages/scrapList/scrapList'
+					}]
+				}, {
+					title: '物料签收',
+					menuItems: [{
+						text: '入库签收',
+						image: 'towms-sign',
+						router: '/pages/entrySign/entrySign'
+					}, {
+						text: '报废签收',
+						image: 'scrap-sign',
+						router: '/pages/scrapSign/scrapSign'
+					}]
 				}],
 				currentRoute: null,
-				currentUrl: null
+				currentRoute1: null,
+				currentUrl: null,
+				DocumentId: null,
+				numberUrl:null
+
 			}
 		},
 		// onUnload() {
@@ -201,55 +242,29 @@
 
 
 
-		
+
 		onLoad(options) {
 			// let pages = getCurrentPages()
 			// console.log(pages.length);
 			// const tenants = JSON.parse(decodeURIComponent(options.tenants))
 			// console.log(tenants);
 			// console.log(tenants.user.tenantId);
+			
 			this.userName = uni.getStorageSync('userName')
 			console.log(this.userName)
-			scanDevice = new ScanDeviceClass();
+			// scanDevice = new ScanDeviceClass();
 			// scanDevice.openScan(); // 打开扫描
-			scanDevice.setOutScanMode(0); // 扫描模式
+			// scanDevice.setOutScanMode(0); // 扫描模式
 			// this.registerScan()
-			scanDevice.openScan()
+			// scanDevice.openScan()
+			console.log(scanDevice.getOutScanMode());
 
+			
+			
 
-			// let tenantslist = tenants.tenants
-			// this.range = tenants.tenants.map((item) => {
-			// 	return {
-			// 		value: item.id,
-			// 		text: item.name
-			// 	}
-			// })
-
-			// tenantslist.forEach((item) => {
-			// 	if (item.id == tenants.user.tenantId) {
-			// 		this.currentTen = item.name
-			// 	}
-			// })
-			// // this.currid = this.range[0].value
-
-			// console.log(this.currentTen);
-			// console.log(this.currid);
-			// // this.range = tenants
-			// console.log(this.range);
-			// this.adAccount = uni.getStorageSync('adAccount')
-			// console.log(this.adAccount);
-			// globalEvent.addEventListener('click', () => {
-			// 	console.log('windowClick')
-			// })
-			// plus.push.addEventListener('click', function(msg) {
-			// 	console.log(msg)
-			// }, false);
 		},
-//  onUnload() {
-// 	 uni.reLaunch({
-// 	 		url: '/pages/index/index'
-// 	 	})
-	
+		
+
 
 		onHide() {
 			console.log('onhide')
@@ -257,15 +272,30 @@
 			scanDevice.stopScan()
 			this.unregisterScan()
 		},
-		onShow() {
-			this.initScan()
-			this.registerScan()
-			scanDevice.setOutScanMode(0); // 扫描模式=广播
+		
+		onUnload() {
+			console.log('onUnload')
+			// scanDevice.setOutScanMode(1); // 扫描模式=输入框
+			// scanDevice.stopScan()
+			// this.unregisterScan()
 		},
-		onBackPress(e){
+		onShow() {
+			console.log('function show');
+			// let _this=this
+			// setTimeout(function() {
+			// 	scanDevice.setOutScanMode(0); // 扫描模式=广播
+			// 	_this.initScan()
+			// 	_this.registerScan()
+			// 	console.log(scanDevice.getOutScanMode());
+			// 	console.log(scanDevice.isScanOpened());
+			// }, 200);
+		
+		
+		},
+		onBackPress(e) {
 			console.log('123')
 		},
-	
+
 		methods: {
 			closeMask() {
 				this.show1 = false
@@ -279,6 +309,7 @@
 			},
 			initScan() {
 				console.log('---------------进入了扫描------------')
+				console.log(scanDevice.getOutScanMode());
 				let _this = this;
 				main = plus.android.runtimeMainActivity(); //获取activity  
 				var IntentFilter = plus.android.importClass('android.content.IntentFilter');
@@ -287,115 +318,517 @@
 				receiver = plus.android.implements('io.dcloud.feature.internal.reflect.BroadcastReceiver', {
 
 					onReceive: function(context, intent) {
+						console.log('进入进入进入');
 						plus.android.importClass(intent);
 						let code = intent.getByteArrayExtra('barocode');
 						//	let codeStr = String.fromCharCode(...code);
 
 						let codeStr = utf8ByteToUnicodeStr(code);
 
+
 						console.log('codeStr:', codeStr);
+
+
+
+
 						// console.log(taskInfo);
 						// let taskId = taskInfo.RelatedId
+						// _this.getDocumentId(codeStr)
 						_this.show1 = false
-						uni.showLoading({
-							title: '正在查询'
-						})
+					
 						console.log(_this.currentRoute)
 
-						console.log(uni.getStorageSync("scToken"))
 
-						let request1 = new Promise((resolve, reject) => {
-							//退库
-							if(_this.currentRoute=== '/pages/returnList/returnList'){
-									_this.currentUrl = BaseApi +'/StockReturnDocument/getlistdaba?Id=' + codeStr
-								}else 
-								//物料退回
-								if(_this.currentRoute=== '/pages/materialReturn/materialReturn'){
-									_this.currentUrl = BaseApi + '/GetMaterialFallbackDataSources?Id=' + codeStr
-							    }else{
-								_this.currentUrl= BaseApi + '/Basedata/Listdata?Id=' + codeStr
-							}
-							console.log(_this.currentUrl)
-							uni.request({
-								url:_this.currentUrl,
-								method: 'GET',
-								header: {
-									'Authorization': 'Bearer ' + uni.getStorageSync(
-										"scToken"),
-									'Content-Type': 'application/json;charset=utf-8'
-								},
-								success: (res) => {
-									resolve(res);
-								},
-								fail: (err) => {
-									reject(err);
-								}
-							});
-						});
 
-						let request2 = new Promise((resolve, reject) => {
-							uni.request({
-								url: _this.currentRoute !== '/pages/returnList/returnList' ?
-									BaseApi + '/Basedata/Topdata?Id=' + codeStr : BaseApi +
-									'/StockReturnDocument/getstationNo?Id=' + codeStr,
-								method: 'GET',
-								header: {
-									'Authorization': 'Bearer ' + uni.getStorageSync(
-										"scToken"),
-									'Content-Type': 'application/json;charset=utf-8'
-								},
-								success: (res) => {
-									resolve(res);
-								},
-								fail: (err) => {
-									reject(err);
-								}
-							});
-						});
-
-						Promise.all([request1, request2]).then(([res1, res2]) => {
 						
-							if (res1.data.statusCode !== 200) {
+						//主页下面四个扫码的进入
+						//退库单
+						if (_this.currentRoute === '/pages/returnList/returnList') {
+							uni.request({
+								url: BaseApi +'/api/app/material/return-documents/' + codeStr,
+								method: 'GET',
+								header: {
+									'Authorization': 'Bearer ' + uni
+										.getStorageSync(
+											"scToken"),
+									'Content-Type': 'application/json;charset=utf-8'
+								},
+								success: (res) => {
+									uni.hideLoading()
+									console.log(res)
+									//jump
+									console.log("jump");
+									//注销扫描
+									scanDevice.setOutScanMode(1); // 扫描模式=输入框
+									scanDevice.stopScan()
+									_this.unregisterScan()
+									uni.navigateTo({
+										url: `/pages/locationDoc/locationDoc?ListData=${JSON.stringify(res.data.data)}&currentRoute=${_this.currentRoute}&codeStr=${codeStr}`,
+									})
+									return
+								
+							
+								},
+								fail: (err) => {
+									console.log(err);
+									uni.hideLoading()
+								}
+							});
+						
+						//报废单
+						} else if(_this.currentRoute === '/pages/scrapList/scrapList'){
+							uni.request({
+								url: BaseApi +'/api/app/material/scrap-documents/' + codeStr,
+								method: 'GET',
+								header: {
+									'Authorization': 'Bearer ' + uni
+										.getStorageSync(
+											"scToken"),
+									'Content-Type': 'application/json;charset=utf-8'
+								},
+								success: (res) => {
+									uni.hideLoading()
+									console.log(res)
+									//注销扫描
+									scanDevice.setOutScanMode(1); // 扫描模式=输入框
+									scanDevice.stopScan()
+									_this.unregisterScan()
+									//jump
+									uni.navigateTo({
+										url: `/pages/locationDoc/locationDoc?ListData=${JSON.stringify(res.data.data)}&currentRoute=${_this.currentRoute}&codeStr=${codeStr}`,
+									})
+									return
+									
+							
+								},
+								fail: (err) => {
+									console.log(err);
+									uni.hideLoading()
+								}
+							});
+							
+						}
+						//报废签收
+						else if(_this.currentRoute === '/pages/scrapSign/scrapSign'){
+							uni.request({
+								
+								url:  BaseApi +'/api/app/material/scrap-receipt-documents/' + codeStr,
+								method: 'GET',
+								header: {
+									'Authorization': 'Bearer ' + uni
+										.getStorageSync(
+											"scToken"),
+									'Content-Type': 'application/json;charset=utf-8'
+								},
+								success: (res) => {
+									
+							
+							console.log(res)
+							if(res.data.statusCode === 200){
 								uni.hideLoading()
-								_this.message = res1.data.message
-								_this.showError = true
-								setTimeout(() => {
-									_this.showError = false
-								}, 3000)
-								return
-							} else if (res2.data.statusCode !== 200) {
-								uni.hideLoading()
-								_this.message = res2.data.message
-								_this.showError = true
-								setTimeout(() => {
-									_this.showError = false
-								}, 3000)
-								return
-							} else {
-								uni.hideLoading()
-								console.log(res2)
-								// console.log(
-								// 	`${_this.currentRoute}?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`
-								// )
+								//注销扫描
+								scanDevice.setOutScanMode(1); // 扫描模式=输入框
+								scanDevice.stopScan()
+								_this.unregisterScan()
+								//jump
 								uni.navigateTo({
-									url: `${_this.currentRoute}?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
+									url: `/pages/locationDoc/locationDoc?ListData=${JSON.stringify(res.data.data)}&currentRoute=${_this.currentRoute}&codeStr=${codeStr}`,
 								})
-									_this.currentRoute=null
+							}else{
+								console.log('转跳2');
+								uni.hideLoading()
+								_this.message = res.data.message
+								_this.showError = true
+																	
+								setTimeout(() => {
+									//注销扫描
+									scanDevice.setOutScanMode(1); // 扫描模式=输入框
+									scanDevice.stopScan()
+									_this.unregisterScan()
+								uni.reLaunch({
+																    url: '/pages/function/function'
+								
+								})
+								}, 3000)
+								
+								
+		
+								return
 							}
-							// 在这里写你的逻辑
-						}).catch(err => {
-							_this.showError = true
-							_this.message = '请求失败'
-							setTimeout(() => {
-								_this.showError = false
-							}, 3000)
-							console.log(err)
-							// 处理请求失败的情况
-						});
+							return
+							
+								},
+								fail: (err) => {
+									console.log(err);
+									uni.hideLoading()
+								}
+							});
+							
+						}
+						//入库签收
+						else if(_this.currentRoute === '/pages/entrySign/entrySign'){
+							uni.request({
+								url:BaseApi +'/api/app/material/inbound-signing-documents/' + codeStr,
+								method: 'GET',
+								header: {
+									'Authorization': 'Bearer ' + uni
+										.getStorageSync(
+											"scToken"),
+									'Content-Type': 'application/json;charset=utf-8'
+								},
+								success: (res) => {
+									
+									console.log(res)
+									if(res.data.statusCode === 200){
+										uni.hideLoading()
+										//注销扫描
+										scanDevice.setOutScanMode(1); // 扫描模式=输入框
+										scanDevice.stopScan()
+										_this.unregisterScan()
+										//jump
+										uni.navigateTo({
+											url: `/pages/locationDoc/locationDoc?ListData=${JSON.stringify(res.data.data)}&currentRoute=${_this.currentRoute}&codeStr=${codeStr}`,
+										})
+									}else{
+										console.log('转跳2');
+										uni.hideLoading()
+										_this.message = res.data.message
+										_this.showError = true
+																			
+										setTimeout(() => {
+											//注销扫描
+												scanDevice.setOutScanMode(1); // 扫描模式=输入框
+												scanDevice.stopScan()
+												_this.unregisterScan()
+											uni.reLaunch({
+																			    url: '/pages/function/function'
+											
+											})
+										}, 3000)
+										return
+									}
+									return
+									
+							
+								},
+								fail: (err) => {
+									console.log(err);
+									uni.hideLoading()
+								}
+							});
+							
+						}
+							//物料退回
+							else if (_this.currentRoute === '/pages/materialReturn/materialReturn') {
+								_this.currentUrl = BaseApi +'/api/app/material/material-fallback-data-sources/' + codeStr
+								
+								let request1 = new Promise((resolve, reject) => {
+								setTimeout(()=>{
+									uni.request({
+										url: _this.currentUrl,
+										method: 'GET',
+										header: {
+											'Authorization': 'Bearer ' + uni.getStorageSync(
+												"scToken"),
+											'Content-Type': 'application/json;charset=utf-8'
+										},
+										success: (res) => {
+											console.log(_this.currentUrl)
+											console.log(res)
+											resolve(res);
+											console.log('request1，成功');
+										},
+										fail: (err) => {
+											// reject(err);
+											uni.hideLoading()
+											console.log('request1,失败');
+										}
+									});
+								},500);
+								
+								});
+								
+								let request2 = new Promise((resolve, reject) => {
+									uni.request({
+										url: BaseApi + '/api/app/material/material-number/' + codeStr,
+										method: 'GET',
+										header: {
+											'Authorization': 'Bearer ' + uni.getStorageSync(
+												"scToken"),
+											'Content-Type': 'application/json;charset=utf-8'
+										},
+										success: (res) => {
+								
+											resolve(res);
+											console.log(
+												res,"request2，成功")
+										},
+										fail: (err) => {
+											reject(err);
+										}
+									});
+								});
+								
+								Promise.all([request1, request2]).then(([res1, res2]) => {
+								
+									if (res1.data.statusCode !== 200) {
+										console.log('转跳1');
+										uni.hideLoading()
+										_this.message = res1.data.message
+										_this.showError = true
+								
+										setTimeout(() => {
+											_this.showError = false
+										}, 3000)
+										return
+									} else if (res2.data.statusCode !== 200) {
+										console.log('转跳2');
+										uni.hideLoading()
+										_this.message = res2.data.message
+										_this.showError = true
+								
+										setTimeout(() => {
+											_this.showError = false
+										}, 3000)
+										return
+									} else {
+										console.log('转跳');
+										uni.hideLoading()
+								//注销扫描
+								scanDevice.setOutScanMode(1); // 扫描模式=输入框
+								scanDevice.stopScan()
+								_this.unregisterScan()
+								
+								
+										uni.navigateTo({
+											url: `${_this.currentRoute}?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}&DocumentId=${JSON.stringify(_this.DocumentId)}`,
+										})
+										_this.currentRoute = null
+									}
+									// 在这里写你的逻辑
+								}).catch(err => {
+									_this.showError = true
+									_this.message = '请求失败'
+									setTimeout(() => {
+										
+										
+										
+										_this.showError = false
+									}, 3000)
+									console.log(err)
+									// 处理请求失败的情况
+								});
+								
+								
+								
+								
+								
+							} else
+								//物料报废
+								if (_this.currentRoute === '/pages/materialScrap/materialScrap') {
+									_this.currentUrl = BaseApi +'/api/app/material/material-scrap-data-sources/' + codeStr
+									let request1 = new Promise((resolve, reject) => {
+									setTimeout(()=>{
+										uni.request({
+											url: _this.currentUrl,
+											method: 'GET',
+											header: {
+												'Authorization': 'Bearer ' + uni.getStorageSync(
+													"scToken"),
+												'Content-Type': 'application/json;charset=utf-8'
+											},
+											success: (res) => {
+												console.log(_this.currentUrl)
+												console.log(res)
+												resolve(res);
+												console.log('request1，成功');
+											},
+											fail: (err) => {
+												// reject(err);
+												uni.hideLoading()
+												console.log('request1,失败');
+											}
+										});
+									},500);
+									
+									});
+									
+									let request2 = new Promise((resolve, reject) => {
+										uni.request({
+											url: BaseApi + '/api/app/material/material-number/' + codeStr,
+											method: 'GET',
+											header: {
+												'Authorization': 'Bearer ' + uni.getStorageSync(
+													"scToken"),
+												'Content-Type': 'application/json;charset=utf-8'
+											},
+											success: (res) => {
+									
+												resolve(res);
+												console.log(
+													res,"request2，成功")
+											},
+											fail: (err) => {
+												reject(err);
+											}
+										});
+									});
+									
+									Promise.all([request1, request2]).then(([res1, res2]) => {
+									
+										if (res1.data.statusCode !== 200) {
+											console.log('转跳1');
+											uni.hideLoading()
+											_this.message = res1.data.message
+											_this.showError = true
+									
+											setTimeout(() => {
+												_this.showError = false
+											}, 3000)
+											return
+										} else if (res2.data.statusCode !== 200) {
+											console.log('转跳2');
+											uni.hideLoading()
+											_this.message = res2.data.message
+											_this.showError = true
+									
+											setTimeout(() => {
+												_this.showError = false
+											}, 3000)
+											return
+										} else {
+											console.log('转跳');
+											uni.hideLoading()
+									//注销扫描
+									scanDevice.setOutScanMode(1); // 扫描模式=输入框
+									scanDevice.stopScan()
+									_this.unregisterScan()
+									
+									
+											uni.navigateTo({
+												url: `${_this.currentRoute}?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}&DocumentId=${JSON.stringify(_this.DocumentId)}`,
+											})
+											_this.currentRoute = null
+										}
+										// 在这里写你的逻辑
+									}).catch(err => {
+										_this.showError = true
+										_this.message = '请求失败'
+										setTimeout(() => {
+											_this.showError = false
+										}, 3000)
+										console.log(err)
+										// 处理请求失败的情况
+									});
+									
+									
+									
+									
+									
+								} else {
+									_this.currentUrl =   BaseApi + `/api/app/material/designate-station/${codeStr}` ;
+									
+									let request1 = new Promise((resolve, reject) => {
+									setTimeout(()=>{
+										uni.request({
+											url: _this.currentUrl,
+											method: 'GET',
+											header: {
+												'Authorization': 'Bearer ' + uni.getStorageSync(
+													"scToken"),
+												'Content-Type': 'application/json;charset=utf-8'
+											},
+											success: (res) => {
+												console.log(_this.currentUrl)
+												console.log(res)
+												resolve(res);
+												console.log('request1，成功');
+											},
+											fail: (err) => {
+												// reject(err);
+												uni.hideLoading()
+												console.log('request1,失败');
+											}
+										});
+									},500);
+									
+									});
+									
+									let request2 = new Promise((resolve, reject) => {
+										uni.request({
+											url: BaseApi + '/api/app/material/material-number/' + codeStr,
+											method: 'GET',
+											header: {
+												'Authorization': 'Bearer ' + uni.getStorageSync(
+													"scToken"),
+												'Content-Type': 'application/json;charset=utf-8'
+											},
+											success: (res) => {
+									
+												resolve(res);
+												console.log(
+													res,"request2，成功")
+											},
+											fail: (err) => {
+												reject(err);
+											}
+										});
+									});
+									
+									Promise.all([request1, request2]).then(([res1, res2]) => {
+									
+										if (res1.data.statusCode !== 200) {
+											console.log('转跳1');
+											uni.hideLoading()
+											_this.message = res1.data.message
+											_this.showError = true
+									
+											setTimeout(() => {
+												_this.showError = false
+											}, 3000)
+											return
+										} else if (res2.data.statusCode !== 200) {
+											console.log('转跳2');
+											uni.hideLoading()
+											_this.message = res2.data.message
+											_this.showError = true
+									
+											setTimeout(() => {
+												_this.showError = false
+											}, 3000)
+											return
+										} else {
+											//跳转之前关闭扫描
+											scanDevice.setOutScanMode(1); // 扫描模式=输入框
+											scanDevice.stopScan()
+											_this.unregisterScan()
+											console.log('转跳');
+											uni.hideLoading()
+									
+									
+									
+											uni.navigateTo({
+												url: `${_this.currentRoute}?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}&DocumentId=${JSON.stringify(_this.DocumentId)}`,
+											})
+											_this.currentRoute = null
+										}
+										// 在这里写你的逻辑
+									}).catch(err => {
+										_this.showError = true
+										_this.message = '请求失败'
+										setTimeout(() => {
+											_this.showError = false
+										}, 3000)
+										console.log(err)
+										// 处理请求失败的情况
+									});
+									
+									
+									
+									
+								}
 
-
-
-
+	
 
 						// scanDevice.stopScan(); // 停止扫描
 
@@ -408,14 +841,32 @@
 					this.modalVisible = false;
 				}, 2000); // 2秒后关闭
 			},
-			linkRequest(item) {
-				this.show1 = true
-				this.currentRoute = item.router
-				// scanDevice.startScan()
-				// setTimeout(() => {
-				// 	this.show1 = false
-				// }, 3000)
+			handlerChoose() {
+				console.log(this.currentRoute1)
+				uni.navigateTo({
+						url: '/pages/locationProject/locationProject?currentRoute1=' + this.currentRoute1
+					}),
+					this.show2 = false
 			},
+			linkRequest() {
+				console.log("扫描转跳");
+		
+		
+				this.currentRoute = this.currentRoute1
+				this.show1 = true;
+				this.show2 = false;
+				let _this=this
+				// setTimeout(function() {
+					scanDevice.setOutScanMode(0); // 扫描模式=广播
+					_this.initScan()
+					_this.registerScan()
+					console.log(scanDevice.getOutScanMode());
+					console.log(scanDevice.isScanOpened());
+				// }, 200);
+				
+			},
+			//拿到documentId
+
 			// back() {
 			// 	uni.navigateBack()
 			// },
@@ -462,6 +913,10 @@
 			// 关闭窗口
 			closeDrawer(e) {
 				this.$refs[e].close()
+			},
+			showLocationc(item) {
+				this.show2 = true,
+					this.currentRoute1 = item.router
 			},
 			// 抽屉状态发生变化触发
 			change(e, type) {
@@ -512,8 +967,9 @@
 					url: '/pages/personalTask/myTask'
 				})
 			},
-
-
+			closec() {
+				this.show2 = false
+			},
 			changeToken() {
 				let url1 = this.$Api.account + 'account=' + this.adAccount + '&tenantId=' + this.currid
 				console.log(url1);
@@ -666,12 +1122,13 @@
 	}
 
 	.menu-items {
-		height: 282rpx;
+		height: 300rpx;
 		width: 100%;
 		background-color: #fff;
-		margin: 16rpx 0;
-		padding: 10rpx 30rpx;
-		box-sizing: border-box;
+		margin-top: 16rpx;
+		padding: 10rpx 0 10rpx 20rpx;
+		// margin: 16rpx 0;
+		// padding: 10rpx 30rpx;
 
 		// .menu-item-container {
 		// 	display: flex;
@@ -684,19 +1141,22 @@
 			line-height: 70rpx;
 			color: #414546;
 			font-weight: 700;
-			font-size: 28rpx;
+			font-size: 30rpx;
+			transform: translateX(15rpx);
 		}
 	}
 
+
 	.menu-item {
-		width: 204rpx;
-		height: 174rpx;
+		width: 315rpx;
+		height: 180rpx;
 		border-radius: 10px;
 		background: rgba(0, 137, 61, 0.06);
 		padding: 30rpx 20rpx;
 		box-sizing: border-box;
 		display: inline-block;
-		margin-right: 24rpx;
+		margin-right: 10px;
+		margin-left: 10px;
 
 		image {
 			width: 60rpx;
@@ -710,9 +1170,59 @@
 			font-size: 28rpx;
 			color: #646464;
 			margin-top: 10rpx;
+			font-size: 30rpx;
 		}
 	}
 
+	.choose-title {
+		height: 100rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		font-size: 35rpx;
+		border-bottom: #ced5da 1px solid;
+	}
 
-	.menu-title {}
+	.location-choose {
+		border-radius: 15rpx;
+		display: flex;
+		flex-direction: column;
+		margin: 520rpx 80rpx;
+		width: 580rpx;
+		height: 400rpx;
+
+		background-color: white;
+		position: fixed;
+		z-index: 1000;
+		top: 0;
+		right: 0;
+		left: 0;
+		bottom: 0;
+	}
+
+	button {
+		margin: unset;
+		padding: unset;
+		background-color: white;
+	}
+
+	button:after {
+		border: unset;
+
+	}
+
+	.mark {
+
+		position: absolute;
+		height: 100%;
+		color: #fff;
+		background: rgba(0, 0, 0, 0.5);
+		left: 0%;
+		right: 0%;
+		top: 0%;
+		font-size: 26rpx;
+		text-align: center;
+		box-shadow: 2px -3px 100px -5px #FFFFFF;
+
+	}
 </style>

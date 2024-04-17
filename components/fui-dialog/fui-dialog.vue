@@ -5,12 +5,25 @@
 			<text class="fui-dialog__title" :style="{color:color}" v-if="title">{{title}}</text>
 			<view class="fui-dialog__body" :class="{'fui-dialog__mtop':!title}">
 				<text class="fui-dialog__descr" :style="{color:contentColor}" v-if="content">{{content}}</text>
+				<!-- <view v-if="title=== '退库数量提醒' || '报废数量提醒' || '结束装配提醒'" class="tip">
+					<text > 生成的退库单和报废单将需要装配经理审批。</text>
+				</view> -->
+				<view v-if="title === '退库数量提醒' || title ==='报废数量提醒' || title ==='结束装配提醒'" class="tipsB">
+							
+						<image src="../../static/img/tips-logo.svg" 
+						style="width: 45rpx;height: 45rpx;margin-top:5rpx;transform: translateY(8rpx);"
+						 mode="widthFix"></image>
+					
+					<view class="tip-text">
+						<text>生成的退库单和报废单需要装配经理审批。</text>
+					</view>
+				</view>
 				<slot></slot>
 			</view>
 			<view class="fui-dialog__footer">
 				<text v-for="(item,index) in buttons" :key="index" :style="{color:item.color || '#333333'}"
 					class="fui-dialog__btn" :class="{'fui-dialog__btn-first':index===0}"
-					@tap="handleClick(index)">{{item.text}}</text>
+					@tap="$noMultipleClicks(handleClick, index)">{{item.text}}</text>
 			</view>
 		</view>
 	</view>
@@ -78,6 +91,7 @@
 			isNvue = true;
 			// #endif
 			return {
+				noClick:true,
 				visible: false,
 				isNvue: isNvue
 			}
@@ -196,7 +210,7 @@
 	}
 
 	.fui-dialog__descr {
-		font-size: 30rpx;
+		font-size: 35rpx;
 		font-weight: normal;
 		text-align: center;
 	}
@@ -301,4 +315,21 @@
 	}
 
 	/* #endif */
+	.tipsB{  
+		font-size: 36rpx;
+		height: 134rpx;
+		width: calc(100% - 60rpx);
+		color: #1d9bb2;
+		background-color: rgba(29, 155, 178, 0.10);
+		padding: 20rpx;
+		display: flex;
+		flex-direction: row;
+		margin-top: 30rpx;
+		margin-left: 30rpx;
+		
+	}
+	.tip-text{
+		width: 600rpx;
+		height: 114rpx;
+	}
 </style>

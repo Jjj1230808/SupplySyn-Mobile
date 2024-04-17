@@ -325,8 +325,12 @@
 				MyCardNum = MyCardNum.substring(0, 14)
 				console.log(MyCardNum);
 				// 发起请求
+				//yao:8072966a875c04
+				//指定发起人，不用刷对应的卡了，shiminxuan:8060505a914304
+				//wangfang:8072954a1d3d04
+				//let url = `https://qakimiworkbenchbe.schaefflercn.com/Home/EmployeeCardNoValidation?cardNo=8072954a1d3d04`
 				//let url = `https://qakimiworkbenchbe.schaefflercn.com/Home/EmployeeCardNoValidation?cardNo=8060505a914304`
-				let url = `https://kimihomebe.schaefflercn.com/Home/EmployeeCardNoValidation?cardNo=${MyCardNum}`
+				let url = `https://kimihomebe.schaefflercn.com/Home/EmployeeCardNoValidation?cardNo=${MyCardNum}`	 
 				// let url = this.baseUrl_home + MyCardNum
 				console.log(url);
 				uni.request({
@@ -343,9 +347,9 @@
 							this.adAccount = res.data.data.adAccount
 							uni.setStorageSync('adAccount', this.adAccount)
 							let url1 =
-								`https://kimihomebe.schaefflercn.com/home/Login4Pda?account=${this.adAccount}&tenantld=${this.tenantId}`
+								//`https://qakimiworkbenchbe.schaefflercn.com/home/Login4Pda?account=${this.adAccount}&tenantld=${this.tenantId}`
 							// let url1 =kimihomebe
-							// `https://kimihomebe.schaefflercn.com/Home/Login4Pda?account=${this.adAccount}&tenantId=${this.tenantId}`
+							`https://kimihomebe.schaefflercn.com/Home/Login4Pda?account=${this.adAccount}&tenantId=${this.tenantId}`
 							// let url1 = this.login_account + 'account=' + this.adAccount + '&tenantId=' + this
 							// 	.tenantId
 							console.log(url1);
@@ -369,6 +373,8 @@
 											url: '/pages/function/function?tenants=' +
 												encodeURIComponent(JSON.stringify(ress.data
 													.tenants))
+											//url: '/pages/materialReturn/materialReturn'
+												
 
 										})
 									} else {

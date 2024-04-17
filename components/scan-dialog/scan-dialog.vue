@@ -33,7 +33,7 @@
 			},
 			text: {
 				type: String,
-				default: '请扫描正确的二维码'
+				default: '请扫描二维码'
 			},
 			imgUrl: {
 				type: String,

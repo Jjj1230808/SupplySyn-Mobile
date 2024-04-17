@@ -4,6 +4,9 @@ import App from './App'
 // import Config from 'common/config.js'
 import api from '@/kevinrong-http/'
 import Api from 'common/Api.js'
+ //按钮全局防抖配置公共方法
+import noMultipleClicks from 'common/commen.js'
+ Vue.prototype.$noMultipleClicks = noMultipleClicks.noMultipleClicks
 
 Vue.config.productionTip = false
 Vue.prototype.$Api = Api
