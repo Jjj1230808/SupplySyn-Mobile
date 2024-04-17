@@ -12,7 +12,7 @@
 				}
 			}
 		}, {
-			"path": "pages/startToAssembly/startToAssembly",
+			"path": "pages/startToAssembly/startToAssembly", 
 			"style": {
 				"navigationBarTitleText": "",
 				"enablePullDownRefresh": false
@@ -84,6 +84,13 @@
 
 		},{
 			"path": "pages/entrySign/entrySign",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": false
+			}
+
+		},{
+			"path": "pages/scrapSign/scrapSign",
 			"style": {
 				"navigationBarTitleText": "",
 				"enablePullDownRefresh": false

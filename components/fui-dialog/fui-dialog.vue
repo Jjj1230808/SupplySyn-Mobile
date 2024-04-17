@@ -23,7 +23,7 @@
 			<view class="fui-dialog__footer">
 				<text v-for="(item,index) in buttons" :key="index" :style="{color:item.color || '#333333'}"
 					class="fui-dialog__btn" :class="{'fui-dialog__btn-first':index===0}"
-					@tap="handleClick(index)">{{item.text}}</text>
+					@tap="$noMultipleClicks(handleClick, index)">{{item.text}}</text>
 			</view>
 		</view>
 	</view>
@@ -91,6 +91,7 @@
 			isNvue = true;
 			// #endif
 			return {
+				noClick:true,
 				visible: false,
 				isNvue: isNvue
 			}

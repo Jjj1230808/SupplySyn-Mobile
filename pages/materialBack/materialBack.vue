@@ -200,6 +200,76 @@
 
 		},
 		methods: {
+			getfreshData() {
+				let _this = this;
+				let url1 = BaseApi + `/api/app/material/designate-station/${_this.Id}`;
+				let url2 = BaseApi + '/api/app/material/material-number/' + _this.Id;
+				let request1 = new Promise((resolve, reject) => {
+					uni.request({
+						url: url1,
+						method: 'GET',
+						header: {
+							'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+							'Content-Type': 'application/json;charset=utf-8'
+						},
+						success: (res) => {
+							resolve(res);
+						},
+						fail: (err) => {
+							reject(err);
+						}
+					});
+				});
+			
+				let request2 = new Promise((resolve, reject) => {
+					uni.request({
+						url: url2,
+						method: 'GET',
+						header: {
+							'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+							'Content-Type': 'application/json;charset=utf-8'
+						},
+						success: (res) => {
+							resolve(res);
+						},
+						fail: (err) => {
+							reject(err);
+						}
+					});
+				});
+			
+				Promise.all([request1, request2]).then(([res1, res2]) => {
+					if (res1.data.statusCode !== 200) {
+					_this.message = res1.data.message?res1.data.message :'出错了，请重试'
+						_this.showError = true
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						return
+					} else if (res2.data.statusCode !== 200) {
+						_this.message = res2.data.message?res2.data.message :'出错了，请重试'
+						_this.showError = true
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						return
+					} else {
+						uni.hideLoading()
+						this.materialList = res1.data.data.data
+						
+						this.topData = res2.data.data
+					}
+					// 在这里写你的逻辑
+				}).catch(err => {
+					this.showError = true
+					this.message = '请求失败'
+					setTimeout(() => {
+						_this.showError = false
+					}, 3000)
+					console.log(err)
+					// 处理请求失败的情况
+				});
+			},
 			onClose1(e) {
 				this.showAssemblyQty = false
 			},
@@ -259,9 +329,7 @@
 			scanAssembly() {
 				this.showAssemblyQty = true
 				// this.showScan = true
-				// this.initScan()
-				// this.registerScan()
-				// scanDevice.startScan()
+				
 				// setTimeout(() => {
 				// 	this.showScan = false
 				// }, 3000)
@@ -275,7 +343,10 @@
 				this.isShowSearch = false
 			},
 			closeSearch() {
+				//this.materialCode = ''
 				this.isShowSearch = false
+				//this.saveCondition =''
+				this.getfreshData()
 			},
 			displaySearchBar() {
 				this.isShowSearch = true

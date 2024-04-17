@@ -86,7 +86,8 @@
 				Id: '',
 				showError: false,
 				message: '',
-				materialInfo: {}
+				materialInfo: {},
+				saveCondition:''
 			};
 		},
 		onLoad(options) {
@@ -125,7 +126,7 @@
 					})
 					//let url = BaseApi + '/Materialreturn/SendreturnNumber?Mid=' + _this.materialInfo.materialId +
 						//'&quantityUsed=' + e.currentNum;
-					let url = BaseApi + '/Materialreturn/SendreturnNumber';
+					let url = BaseApi + '/api/app/material/material-fallback';
 					//需要在dialog上面多加两个数字输入框 退库数量，报废数量和已用数量
 					let data = {
 						mid:_this.materialInfo.materialId,
@@ -146,7 +147,7 @@
 							console.log(res)
 							if (res.data.statusCode !== 200) {
 								uni.hideLoading()
-								_this.message = res.data.message
+								_this.message = res.data.message?res.data.message :'出错了，请重试'
 								_this.showError = true
 								setTimeout(() => {
 									_this.showError = false
@@ -190,7 +191,7 @@
 				})
 				let _this = this;
 				console.log(e.id)
-				let url = BaseApi + '/GetDetail?Mid=' + JSON.stringify({
+				let url = BaseApi + '/api/app/material/material-find?Mid=' + JSON.stringify({
 					'Id': e.id
 				});
 				console.log(url)
@@ -205,7 +206,7 @@
 						console.log(res)
 						if (res.data.statusCode !== 200) {
 							uni.hideLoading()
-							_this.message = res.data.message
+						_this.message = res.data.message?res.data.message :'出错了，请重试'
 							_this.showError = true
 							setTimeout(() => {
 								_this.showError = false
@@ -232,8 +233,8 @@
 			
 			getfreshData() {
 				let _this = this;
-				let url1 = BaseApi + '/GetMaterialFallbackDataSources?Id=' + _this.Id;
-				let url2 = BaseApi + '/Basedata/Topdata?Id=' + _this.Id;
+				let url1 = BaseApi + '/api/app/material/material-fallback-data-sources/' + _this.Id;
+				let url2 = BaseApi + '/api/app/material/material-number/' + _this.Id;
 				let request1 = new Promise((resolve, reject) => {
 					uni.request({
 						url: url1,
@@ -270,14 +271,14 @@
 			
 				Promise.all([request1, request2]).then(([res1, res2]) => {
 					if (res1.data.statusCode !== 200) {
-						_this.message = res1.data.message
+						_this.message = res1.data.message?res1.data.message :'出错了，请重试'
 						_this.showError = true
 						setTimeout(() => {
 							_this.showError = false
 						}, 3000)
 						return
 					} else if (res2.data.statusCode !== 200) {
-						_this.message = res2.data.message
+						_this.message = res2.data.message?res2.data.message :'出错了，请重试'
 						_this.showError = true
 						setTimeout(() => {
 							_this.showError = false
@@ -285,9 +286,9 @@
 						return
 					} else {
 						uni.hideLoading()
-						uni.redirectTo({
-							url: `/pages/materialReturn/materialReturn?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
-						})
+						this.materialList = res1.data.data.data
+						
+						this.topData = res2.data.data
 					}
 					// 在这里写你的逻辑
 				}).catch(err => {
@@ -301,13 +302,14 @@
 				});
 			},
 			enterMaterialCode(e) {
+							this.saveCondition = e.detail.value
 				console.log(e)
 				let _this = this;
 				this.isShowSearch = false
 				uni.showLoading({
 					title: '正在搜索'
 				})
-				let url = BaseApi + '/SearchMaterialFallback?Id=' + this.Id + '&Info=' + e.detail.value;
+				let url = BaseApi + '/api/app/material/material-fallback/' + this.Id + '?Info=' + e.detail.value;
 				console.log(url)
 				uni.request({
 					url: url,
@@ -320,7 +322,7 @@
 						console.log(res)
 						if (res.data.statusCode !== 200) {
 							uni.hideLoading()
-							_this.message = res.data.message
+						_this.message = res.data.message?res.data.message :'出错了，请重试'
 							_this.showError = true
 							setTimeout(() => {
 								_this.showError = false
@@ -345,8 +347,10 @@
 
 			},
 			closeSearch() {
-				this.materialCode = ''
-				this.isShowSearch = false
+			this.materialCode = ''
+			this.isShowSearch = false
+			this.saveCondition =''
+			this.getfreshData()
 			},
 			displaySearchBar() {
 				scanDevice.setOutScanMode(1); // 扫描模式=广播

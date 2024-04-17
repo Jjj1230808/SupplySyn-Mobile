@@ -107,6 +107,81 @@
 
 		},
 		methods: {
+			
+			getfreshData() {
+				let _this = this;
+				let url1 = BaseApi + `/api/app/material/designate-station/${_this.Id}`;
+				let url2 = BaseApi + '/api/app/material/material-number/' + _this.Id;
+				let request1 = new Promise((resolve, reject) => {
+					uni.request({
+						url: url1,
+						method: 'GET',
+						header: {
+							'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+							'Content-Type': 'application/json;charset=utf-8'
+						},
+						success: (res) => {
+							resolve(res);
+						},
+						fail: (err) => {
+							reject(err);
+						}
+					});
+				});
+			
+				let request2 = new Promise((resolve, reject) => {
+					uni.request({
+						url: url2,
+						method: 'GET',
+						header: {
+							'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+							'Content-Type': 'application/json;charset=utf-8'
+						},
+						success: (res) => {
+							resolve(res);
+						},
+						fail: (err) => {
+							reject(err);
+						}
+					});
+				});
+			
+				Promise.all([request1, request2]).then(([res1, res2]) => {
+					if (res1.data.statusCode !== 200) {
+						_this.message = res1.data.message
+						_this.showError = true
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						return
+					} else if (res2.data.statusCode !== 200) {
+						_this.message = res2.data.message
+						_this.showError = true
+						setTimeout(() => {
+							_this.showError = false
+						}, 3000)
+						return
+					} else {
+						uni.hideLoading()
+						console.log(res1.data);
+						// uni.redirectTo({
+						// 	url: `/pages/startToAssembly/startToAssembly?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
+						// })
+						this.materialList = res1.data.data.data.filter(item => item.materialType !== 20)
+						
+						this.topData = res2.data.data
+					}
+					// 在这里写你的逻辑
+				}).catch(err => {
+					this.showError = true
+					this.message = '请求失败'
+					setTimeout(() => {
+						_this.showError = false
+					}, 3000)
+					console.log(err)
+					// 处理请求失败的情况
+				});
+			},
 			reprintLable() {
 				console.log('打印')
 			},
@@ -117,7 +192,7 @@
 				uni.showLoading({
 					title: '正在搜索'
 				})
-				let url = BaseApi + '/Search?Id=' + this.Id + '&Info=' + e.detail.value;
+				let url = BaseApi + '/api/app/material/material/' + this.Id + '?Info=' + e.detail.value;
 				console.log(url)
 				uni.request({
 					url: url,
@@ -157,6 +232,7 @@
 			closeSearch() {
 				this.materialCode = ''
 				this.isShowSearch = false
+				this.getfreshData()
 			},
 			displaySearchBar() {
 				scanDevice.setOutScanMode(1); // 扫描模式=广播

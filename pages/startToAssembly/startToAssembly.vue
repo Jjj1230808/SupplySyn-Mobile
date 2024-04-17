@@ -26,7 +26,7 @@
 			</view>
 			<view class="number-summarize">
 				<view>领料总数 <span style="color: #414546;">{{topData.totalQuantitys}}</span></view>
-				<view>已用数量 <span style="color: #00893d;">{{topData.quantityUseds}}</span></view>
+				<view>装配数量 <span style="color: #00893d;">{{topData.quantityUseds}}</span></view>
 				<view>剩余数量 <span style="color: #f2b704;">{{topData.remainingQuantitys<0 ? 0 :topData.remainingQuantitys }}</span></view>
 			</view>
 		</view>
@@ -205,30 +205,57 @@
 				showError: false,
 				message: '',
 				materialInfo: {},
-				show2:false
+				show2:false,
+				saveCondition:''
 			};
 		},
+		
+
+		
 		onLoad(options) {
-			this.Id = JSON.parse((options.ListData)).id;
+			uni.showLoading({
+							title: '正在加载'
+						})
+			
+			console.log( options);
+	
+			console.log('开始装配onLoad');
+	
+this.Id = JSON.parse((options.ListData)).id;
+console.log(this.Id);		
 			this.materialList = JSON.parse((options.ListData)).data
+			console.log(this.materialList );
 			this.topData = JSON.parse((options.topData))
-		console.log('onLoad');
+		console.log('开始装配onLoad');
 		
 
 		},
+	
 		onHide() {
-			console.log('onhide')
+			console.log('开始装配onhide')
+			
 			scanDevice.setOutScanMode(1); // 扫描模式=输入框
 			scanDevice.stopScan()
 			this.unregisterScan()
 		},
 		onShow() {
 			scanDevice.setOutScanMode(0); // 扫描模式=广播
-			this.getfreshData();
-			console.log('onShow');
 			this.initScan()
 			this.registerScan()
+			 this.getfreshData();
+			console.log('开始装配onShow');
+				
+			
 		},
+		onUnload() {
+			// scanDevice.setOutScanMode(1); // 扫描模式=输入框
+			// scanDevice.stopScan()
+			// this.unregisterScan()
+			console.log('装配完成onUnLoad');
+			uni.hideLoading()
+		
+		},
+		
 		watch: {
 
 		},
@@ -249,9 +276,8 @@
 					uni.showLoading({
 						title: '正在确认'
 					})
-					// let url = BaseApi + '/Assemble/AssembleNumber?Mid=' + _this.materialInfo.materialId +
-					// 	'&quantityUsed=' + e.currentNum;
-					let url = BaseApi + '/Assemble/AssembleNumber';
+					
+					let url = BaseApi + '/api/app/material/material-assembly';
 					let data = {
 						mid:_this.materialInfo.materialId,
 						quantityUsed:e.currentNum
@@ -319,7 +345,7 @@
 						title: '正在确认'
 					})
 
-					let url = BaseApi + '/Assemble/Assemblefinished?Id=' + _this.Id;
+					let url = BaseApi + '/api/app/material/material-assembly-finish/' + _this.Id;
 					console.log(url)
 					uni.request({
 						url: url,
@@ -373,83 +399,167 @@
 				}
 			},
 			getfreshData() {
-				let _this = this;
-				let url1 = BaseApi + '/Basedata/Listdata?Id=' + _this.Id;
-				let url2 = BaseApi + '/Basedata/Topdata?Id=' + _this.Id;
-				let request1 = new Promise((resolve, reject) => {
-					uni.request({
-						url: url1,
-						method: 'GET',
-						header: {
-							'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
-							'Content-Type': 'application/json;charset=utf-8'
-						},
-						success: (res) => {
-							resolve(res);
-						},
-						fail: (err) => {
-							reject(err);
-						}
+		
+				if(this.saveCondition === ''){
+							console.log("kkk");
+					let _this = this;
+					let url1 = BaseApi + `/api/app/material/designate-station/${_this.Id}`;
+					let url2 = BaseApi + '/api/app/material/material-number/' + _this.Id;
+					console.log(url1);
+					let request1 = new Promise((resolve, reject) => {
+						uni.request({
+							url: url1,
+							method: 'GET',
+							header: {
+								'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+								'Content-Type': 'application/json;charset=utf-8'
+							},
+							success: (res) => {
+								resolve(res);
+								console.log(res);
+							},
+							fail: (err) => {
+								reject(err);
+							}
+						});
 					});
-				});
-			
-				let request2 = new Promise((resolve, reject) => {
-					uni.request({
-						url: url2,
-						method: 'GET',
-						header: {
-							'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
-							'Content-Type': 'application/json;charset=utf-8'
-						},
-						success: (res) => {
-							resolve(res);
-						},
-						fail: (err) => {
-							reject(err);
-						}
+								
+					let request2 = new Promise((resolve, reject) => {
+						uni.request({
+							url: url2,
+							method: 'GET',
+							header: {
+								'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+								'Content-Type': 'application/json;charset=utf-8'
+							},
+							success: (res) => {
+								resolve(res);
+							},
+							fail: (err) => {
+								reject(err);
+							}
+						});
 					});
-				});
-			
-				Promise.all([request1, request2]).then(([res1, res2]) => {
-					if (res1.data.statusCode !== 200) {
-						_this.message = res1.data.message
-						_this.showError = true
+								
+					Promise.all([request1, request2]).then(([res1, res2]) => {
+						if (res1.data.statusCode !== 200) {
+							_this.message = res1.data.message
+							_this.showError = true
+							setTimeout(() => {
+								_this.showError = false
+							}, 3000)
+							return
+						} else if (res2.data.statusCode !== 200) {
+							_this.message = res2.data.message
+							_this.showError = true
+							setTimeout(() => {
+								_this.showError = false
+							}, 3000)
+							return
+						} else {
+							uni.hideLoading()
+							console.log(res1.data);
+							// uni.redirectTo({
+							// 	url: `/pages/startToAssembly/startToAssembly?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
+							// })
+							this.materialList = res1.data.data.data
+							
+							this.topData = res2.data.data
+						}
+						// 在这里写你的逻辑
+					}).catch(err => {
+						this.showError = true
+						this.message = '请求失败'
 						setTimeout(() => {
 							_this.showError = false
 						}, 3000)
-						return
-					} else if (res2.data.statusCode !== 200) {
-						_this.message = res2.data.message
-						_this.showError = true
+						console.log(err)
+						// 处理请求失败的情况
+					});
+				}else{
+					let _this = this;
+					let url1 = BaseApi + '/api/app/material/material/' + _this.Id + '?Info=' + _this.saveCondition;
+					let url2 = BaseApi + '/api/app/material/material-number/' + _this.Id;
+					let request1 = new Promise((resolve, reject) => {
+						uni.request({
+							url: url1,
+							method: 'GET',
+							header: {
+								'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+								'Content-Type': 'application/json;charset=utf-8'
+							},
+							success: (res) => {
+								resolve(res);
+							},
+							fail: (err) => {
+								reject(err);
+							}
+						});
+						
+						
+						
+						
+					});
+								
+					let request2 = new Promise((resolve, reject) => {
+						uni.request({
+							url: url2,
+							method: 'GET',
+							header: {
+								'Authorization': 'Bearer ' + uni.getStorageSync("scToken"),
+								'Content-Type': 'application/json;charset=utf-8'
+							},
+							success: (res) => {
+								resolve(res);
+							},
+							fail: (err) => {
+								reject(err);
+							}
+						});
+					});
+								
+					Promise.all([request1, request2]).then(([res1, res2]) => {
+						if (res1.data.statusCode !== 200) {
+							_this.message = res1.data.message
+							_this.showError = true
+							setTimeout(() => {
+								_this.showError = false
+							}, 3000)
+							return
+						} else if (res2.data.statusCode !== 200) {
+							_this.message = res2.data.message
+							_this.showError = true
+							setTimeout(() => {
+								_this.showError = false
+							}, 3000)
+							return
+						} else {
+							uni.hideLoading()
+							console.log(res1.data.data,res2.data.data);
+							// uni.redirectTo({
+							// 	url: `/pages/startToAssembly/startToAssembly?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
+							// })
+							this.Id = res1.data.data.id;
+							this.materialList = res1.data.data.data
+							this.topData = res2.data.data
+						}
+						// 在这里写你的逻辑
+					}).catch(err => {
+						this.showError = true
+						this.message = '请求失败'
 						setTimeout(() => {
 							_this.showError = false
 						}, 3000)
-						return
-					} else {
-						uni.hideLoading()
-						console.log(res1.data.data,res2.data.data);
-						// uni.redirectTo({
-						// 	url: `/pages/startToAssembly/startToAssembly?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
-						// })
-						this.Id = res1.data.data.id;
-						this.materialList = res1.data.data.data
-						this.topData = res2.data.data
-					}
-					// 在这里写你的逻辑
-				}).catch(err => {
-					this.showError = true
-					this.message = '请求失败'
-					setTimeout(() => {
-						_this.showError = false
-					}, 3000)
-					console.log(err)
-					// 处理请求失败的情况
-				});
+						console.log(err)
+						// 处理请求失败的情况
+					});
+				}
+			
 			},
 			getReturnData() {
 				let _this = this;
-				let url1 = BaseApi + '/Basedata/Listdata?Id=' + _this.Id;
-				let url2 = BaseApi + '/Basedata/Topdata?Id=' + _this.Id;
+				let url1 =BaseApi + `/api/app/material/designate-station/${_this.Id}`;
+				let url2 = BaseApi + '/api/app/material/material-number/' + _this.Id;
 				let request1 = new Promise((resolve, reject) => {
 					uni.request({
 						url: url1,
@@ -500,7 +610,13 @@
 						}, 3000)
 						return
 					} else {
+						scanDevice.setOutScanMode(1); // 扫描模式=输入框
+						scanDevice.stopScan()
+						this.unregisterScan()
+						console.log();
 						uni.hideLoading()
+						console.log('跳');
+						
 						uni.navigateTo({
 							url: `/pages/returnToWMS/returnToWMS?ListData=${JSON.stringify(res1.data.data)}&topData=${JSON.stringify(res2.data.data)}`,
 						})
@@ -544,7 +660,7 @@
 
 						console.log('codeStr:', codeStr);
 
-						let url = BaseApi + '/GetDetail?Mid=' + codeStr;
+						let url = BaseApi + '/api/app/material/material-find?Mid=' + codeStr;
 						console.log(url)
 						uni.request({
 							url: url,
@@ -608,8 +724,8 @@
 						title: '正在查询'
 					})
 
-					let url1 = BaseApi + '/GetMaterialFallbackDataSources?Id=' + this.Id
-					let url2 = BaseApi + '/Basedata/Topdata?Id=' + this.Id
+					let url1 = BaseApi + '/api/app/material/material-fallback-data-sources/' + this.Id
+					let url2 = BaseApi + '/api/app/material/material-number/' + this.Id
 					console.log(uni.getStorageSync("scToken"))
 
 					let request1 = new Promise((resolve, reject) => {
@@ -695,8 +811,8 @@
 						title: '正在查询'
 					})
 			
-					let url1 = BaseApi + '/GetMaterialScrapDataSources?Id=' + this.Id
-					let url2 = BaseApi + '/Basedata/Topdata?Id=' + this.Id
+					let url1 = BaseApi + '/api/app/material/material-scrap-data-sources/' + this.Id
+					let url2 = BaseApi + '/api/app/material/material-number/' + this.Id
 					console.log(uni.getStorageSync("scToken"))
 			
 					let request1 = new Promise((resolve, reject) => {
@@ -783,7 +899,8 @@
 					title: '正在搜索'
 				})
 				console.log(this.Id)
-				let url = BaseApi + '/Search?Id=' + this.Id + '&Info=' + e.detail.value;
+				this.saveCondition = e.detail.value
+				let url = BaseApi + '/api/app/material/material/' + this.Id + '?Info=' + e.detail.value;
 				console.log(url)
 				uni.request({
 					url: url,
@@ -804,6 +921,7 @@
 							return
 						} else {
 							_this.materialList = res.data.data.data
+							
 							uni.hideLoading()
 
 						}
@@ -823,6 +941,8 @@
 			closeSearch() {
 				this.materialCode = ''
 				this.isShowSearch = false
+				this.saveCondition =''
+				this.getfreshData()
 				// this.enterMaterialCode({
 				// 	detail: {
 				// 		value: ''
